@@ -1,5 +1,6 @@
 import io
 import os
+import buzz
 
 # Imports the Google Cloud client library
 from google.cloud import vision
