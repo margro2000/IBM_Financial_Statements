@@ -1,6 +1,5 @@
 import io
 import os
-import buzz
 
 # Imports the Google Cloud client library
 from google.cloud import vision
@@ -12,7 +11,7 @@ client = vision.ImageAnnotatorClient()
 # The name of the image file to annotate
 file_name = os.path.join(
     os.path.dirname(__file__),
-    'resources/wakeupcat.jpg')
+    'wholesome_pic.png')
 
 # Loads the image into memory
 with io.open(file_name, 'rb') as image_file:
@@ -27,3 +26,12 @@ labels = response.label_annotations
 print('Labels:')
 for label in labels:
     print(label.description)
+
+def findDocType():
+	print("I am finding doc type!")
+
+findDocType()
+
+#find document type methodd
+#abstract method-> extract data
+#method-> extract revenue
