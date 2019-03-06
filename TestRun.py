@@ -27,11 +27,13 @@ print('Labels:')
 for label in labels:
     print(label.description)
 
+#find document type method
 def findDocType():
 	print("I am finding doc type!")
 
 findDocType()
 
-#find document type methodd
-#abstract method-> extract data
-#method-> extract revenue
+#check if table method that returns true or false
+#
+#method-> extract data
+#parameter String-> extraction World
