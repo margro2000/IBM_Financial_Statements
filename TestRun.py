@@ -93,9 +93,9 @@ def detect_document(path):
                         print(symbol.text)
 
 
-#detect_document('/Users/mg/repos/IBM_Financial_Statements/Amazon_10-k_2018-18.png')
+#detect_document('./Amazon_10-k_2018-18.png')
 
-detect_text('/Users/mg/repos/IBM_Financial_Statements/Amazon_10-k_2018-18.png')
+detect_text('./Amazon_10-k_2018-18.png')
 
 
 def assemble_word(word):
