@@ -4,6 +4,15 @@ import os
 # Imports the Google Cloud client library
 from google.cloud import vision
 from google.cloud.vision import types
+from enum import Enum
+from PIL import Image, ImageDraw
+
+class FeatureType(Enum):
+    PAGE = 1
+    BLOCK = 2
+    PARA = 3
+    WORD = 4
+    SYMBOL = 5
 
 def draw_boxes(image, bounds, color,width=5):
     draw = ImageDraw.Draw(image)
@@ -17,6 +26,7 @@ def draw_boxes(image, bounds, color,width=5):
     return image
 
 def get_document_bounds(response, feature):
+    bounds = []
     for i,page in enumerate(document.pages):
         for block in page.blocks:
             if feature==FeatureType.BLOCK:
@@ -76,7 +86,7 @@ if __name__ == "__main__":
     # The name of the image file to annotate
     file_name = os.path.join(
         os.path.dirname(__file__),
-        'Alphabet_10K_2017.pdf')
+        'Amazon_10-k_2018-18.png')
 
     # Loads the image into memory
     with io.open(file_name, 'rb') as image_file:
@@ -92,9 +102,8 @@ if __name__ == "__main__":
     #for label in labels:
     #    print(label.description)
 
-    #bounds=get_document_bounds(response, FeatureType.WORD)
+    bounds=get_document_bounds(response, FeatureType.WORD)
     #draw_boxes(image,bounds, 'yellow')
 
-    location=find_word_location(document,'net sales')
-    print(document)
+    #location=find_word_location(document,'net sales')
     #text_within(document, location.vertices[1].x, location.vertices[1].y, 30+location.vertices[1].x+(location.vertices[1].x-location.vertices[0].x),location.vertices[2].y)
