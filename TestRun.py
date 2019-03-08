@@ -1,9 +1,12 @@
 import io
 import os
+import argparse
+from enum import Enum
 
 # Imports the Google Cloud client library
 from google.cloud import vision
 from google.cloud.vision import types
+from PIL import Image, ImageDraw
 
 # Instantiates a client
 client = vision.ImageAnnotatorClient()
@@ -22,16 +25,16 @@ image = types.Image(content=content)
 # Performs label detection on the image file
 response = client.label_detection(image=image)
 labels = response.label_annotations
+document = response.full_text_annotation
 
 print('Labels:')
 for label in labels:
     print(label.description)
 
 #find document type method
-def findDocType():
-	print("I am finding doc type!")
+print("I am finding doc type!")
 
-findDocType()
+#findDocType()
 
 def detect_text(path):
     """Detects text in the file."""
@@ -89,9 +92,31 @@ def detect_document(path):
                     for symbol in word.symbols:
                         print(symbol.text)
 
+
 #detect_document('/Users/mg/repos/IBM_Financial_Statements/Amazon_10-k_2018-18.png')
 
 detect_text('/Users/mg/repos/IBM_Financial_Statements/Amazon_10-k_2018-18.png')
+
+
+def assemble_word(word):
+    assembled_word=""
+    for symbol in word.symbols:
+        assembled_word+=symbol.text
+    return assembled_word
+
+def find_word_location(document,word_to_find):
+    for page in document.pages:
+        for block in page.blocks:
+            for paragraph in block.paragraphs:
+                for word in paragraph.words:
+                    assembled_word=assemble_word(word_to_find)
+                    if(assembled_word==word_to_find):
+                        return word.bounding_box
+
+location=find_word_location(document,"for")
+print(location)
+
+
 #check if table method that returns true or false
 #
 #method-> extract data
