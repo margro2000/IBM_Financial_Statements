@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "optimum-octane-232512",
+  "private_key_id": "365bebaf6cc209a79fdc3b53590d9946045bb68e",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC/pjNxmw5WJCst\ntFHtZLW6aOLIpC/Se80MvHdWbg2BQ/beE/498ro6F2uh1WVU5b6FjLsXT/0pDaHP\nWTEOgwdoNu8dsv4uD3OM6jd/Tr5t6TrJjbp8M8/PSeeomjV/xbRLsfTDmuPiWxZB\nLo2U+nX6nhWE7HHbD2ybAFp3LxJXHR0HARJCpFiWLEXaFfp6YNvNirvABV/Gd+UP\nbv9aqSGEwPKFE7HdSjKtcOTLeFKb6Vfq/8Ovq+twTGOJ+AqYWhrEve/zl62XRgwY\n9qfKXn2v4TVhKPDduyejee+WzyXO8AKvg+HChB2qHztcGVKYmCY7jjuVrUA9NJfU\n0ptVkph5AgMBAAECggEAALvHR6CId1jvwgmGJL/1bW9jACdCDZlZXrqb7vyV2FBP\nx2gmhCCD3kliU+i9WLaruiwgjTAfr8K0bgGRN//VYpc55rsIJln7HxIdwJgnD273\nQXflkP3LxlHUl/xwcaWVO+hESmQIikBp/zmJONrqjQPXi5OHbgdgQDRJ+a8i8AAT\n/HjYzmG8afc6zJxMVZHFjJWd20/ei1T7LKm11TyuLG7vmyKwgnB9q9Ep8W47p20D\nMkuk1Mk/FQjexz2Qn0ywfKLv7KtZDz7u7ZFr/978PKw77SkDHCf3E1dN+wcEuv4V\npM/eUiL2EZvpfsalWfqUKRclO1uLJ4T7mqaLOcmhhwKBgQD3cjAnBR9I6Dz7sYsf\nnlKfsU2FTuj9nn6+mRd1R7lMvmIUQ6qNZEnk5E9jKW8PdD89tYbMv0zwGA5A2cWO\nH+6cmyBTl2i2hbFqVCrJPReOhff0+ILRo+9f0PFSWcAAY0KyGEft2XCpbtnbiCcI\ntNht3MUycaMqKxifJ/AgvKXW0wKBgQDGRjryfcY/cRAEwCv+4sBg1B4k/pK/2ILB\nGx21rFpnn/yCq0BXM24TTBseBzxgP/0oA0k1GMaJbmd9lB7lDMTX0Az2vpAy2R1i\nfYH6JjZTBV6E5ZCVcYMU57+RgMKCHRwUprNls7ePi79mRRa64O2szQmvUzdSDTTZ\nlL/nohYcAwKBgFfBDUapUGEAy6/PVTGPamnr7TwbshFPxk89583V8+c9lXbuUGv4\nZyRfu6/FH/fxGASAfh/asCRtw5BIKwGuXWb4tMwwZBhm7XZyBwJ7QgFvjXI5N9u1\nMc1fQlYcMjVw/lQ+vDOj64qLH4P1kzJJQIAlzWGIX38y7XZ0KXrSrFW1AoGAYmEa\ngpORuIzbC+BmdBQCrIjTZDvEiNhfGH3h4fDg8qXZXuSmCh6EsaKDmgSxGnjlneLz\nghsG984GH7NNGQ2a5hJfPFcVqYU9JU9tHLe1IMB7Q6m8ccpe5hKPZRzkZjcXZc/J\nF99yZxFKKO6C9rsAc0tRUOMTgez3mjZKeh5cpg0CgYABlRM1NQZVRgz8ju3+FkPQ\n1o5shGuBp/4o4OSwKDW4KhhKBaVkf94VAQMpU/YcgoHLyOjbqz9cl1U26n2C2Pbm\nqHYJs3Ot7gBp1qqN4QP4lkjAxPLfVYwhzGzOxj8aKFyGszTVcg/170HhBdsAhDgk\nB4KC/UMTb+02BUe3ucynGw==\n-----END PRIVATE KEY-----\n",
+  "client_email": "margro2000@optimum-octane-232512.iam.gserviceaccount.com",
+  "client_id": "101311343168978374258",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/margro2000%40optimum-octane-232512.iam.gserviceaccount.com"
+}
