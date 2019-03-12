@@ -6,7 +6,7 @@ from enum import Enum
 # Imports the Google Cloud client library
 from google.cloud import vision
 from google.cloud.vision import types
-from PIL import Image, ImageDraw
+#from PIL import Image, ImageDraw
 
 # Instantiates a client
 client = vision.ImageAnnotatorClient()
@@ -51,12 +51,11 @@ def detect_text(path):
     print('Texts:')
 
     for text in texts:
-        print('\n"{}"'.format(text.description))
-
-        vertices = (['({},{})'.format(vertex.x, vertex.y)
-                    for vertex in text.bounding_poly.vertices])
-
-        print('bounds: {}'.format(','.join(vertices)))
+        if text.description=="sales":
+            print('\n"{}"'.format(text.description))
+            vertices = (['({},{})'.format(vertex.x, vertex.y)
+                for vertex in text.bounding_poly.vertices])
+            print('bounds: {}'.format(','.join(vertices)))
 
 def detect_document(path):
     """Detects document features in an image."""
