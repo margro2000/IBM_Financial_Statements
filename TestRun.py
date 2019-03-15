@@ -27,16 +27,16 @@ response = client.label_detection(image=image)
 labels = response.label_annotations
 document = response.full_text_annotation
 
-print('Labels:')
-for label in labels:
-    print(label.description)
+# print('Labels:')
+# for label in labels:
+#     print(label.description)
 
 #find document type method
 print("I am finding doc type!")
 
 #findDocType()
 
-def detect_text(path):
+def detect_text(path, word, year):
     """Detects text in the file."""
     from google.cloud import vision
     client = vision.ImageAnnotatorClient()
@@ -51,11 +51,40 @@ def detect_text(path):
     print('Texts:')
 
     for text in texts:
-        if text.description=="sales":
+        if text.description==word:
             print('\n"{}"'.format(text.description))
-            vertices = (['({},{})'.format(vertex.x, vertex.y)
+            vertices1 = ({'({},{})'.format(vertex.x, vertex.y)
+                for vertex in text.bounding_poly.vertices})
+            print('bounds: {}'.format(','.join(vertices1)))
+    vy = [int((tup.split(","))[1][0:-1]) for tup in vertices1]
+    vy = sorted(list(dict.fromkeys(vy)))
+
+
+    for text in texts:
+        if text.description==year:
+            print('\n"{}"'.format(text.description))
+            vertices2 = (['({},{})'.format(vertex.x, vertex.y)
                 for vertex in text.bounding_poly.vertices])
-            print('bounds: {}'.format(','.join(vertices)))
+            print('bounds: {}'.format(','.join(vertices2)))
+    vx = [int((tup.split(","))[0][1:]) for tup in vertices2]
+    vx = sorted(list(dict.fromkeys(vx)))
+
+
+    for text in texts:
+        maybe = (['({},{})'.format(vertex.x, vertex.y)
+                for vertex in text.bounding_poly.vertices])
+        my = [(tup.split(","))[1][0:-1] for tup in maybe]
+        my = sorted(list(dict.fromkeys(my)))
+        mx = [int((tup.split(","))[0][1:]) for tup in maybe]
+        mx = sorted(list(dict.fromkeys(mx)))
+        # print(vy[0])
+        # print(type(vy[0]))
+        # print(my[0])
+        # print(type(my[0]))
+        # break
+        if vy[0] == int(my[0]):
+            if vx[1] in range(mx[0], mx[1]):
+                print(text.description)
 
 def detect_document(path):
     """Detects document features in an image."""
@@ -94,7 +123,7 @@ def detect_document(path):
 
 #detect_document('./Amazon_10-k_2018-18.png')
 
-detect_text('./Amazon_10-k_2018-18.png')
+detect_text('./Amazon_10-k_2018-18.png', "Operating", "2018")
 
 
 def assemble_word(word):
