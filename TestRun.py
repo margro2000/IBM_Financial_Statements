@@ -9,6 +9,7 @@ from google.cloud.vision import types
 #from PIL import Image, ImageDraw
 
 # Instantiates a client
+
 client = vision.ImageAnnotatorClient()
 
 # The name of the image file to annotate
@@ -27,9 +28,9 @@ response = client.label_detection(image=image)
 labels = response.label_annotations
 document = response.full_text_annotation
 
-# print('Labels:')
-# for label in labels:
-#     print(label.description)
+print('Labels:')
+for label in labels:
+    print(label.description)
 
 #find document type method
 print("I am finding doc type!")
@@ -77,11 +78,6 @@ def detect_text(path, word, year):
         my = sorted(list(dict.fromkeys(my)))
         mx = [int((tup.split(","))[0][1:]) for tup in maybe]
         mx = sorted(list(dict.fromkeys(mx)))
-        # print(vy[0])
-        # print(type(vy[0]))
-        # print(my[0])
-        # print(type(my[0]))
-        # break
         if vy[0] == int(my[0]):
             if vx[1] in range(mx[0], mx[1]):
                 print(text.description)
@@ -123,7 +119,7 @@ def detect_document(path):
 
 #detect_document('./Amazon_10-k_2018-18.png')
 
-detect_text('./Amazon_10-k_2018-18.png', "Operating", "2018")
+detect_text('./Amazon_10-k_2018-18.png', "sales", "2014")
 
 
 def assemble_word(word):
