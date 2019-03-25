@@ -1,21 +1,21 @@
 import io
 import os
+import argparse
+from enum import Enum
 
 # Imports the Google Cloud client library
 from google.cloud import vision
 from google.cloud.vision import types
+#from PIL import Image, ImageDraw
 
 # Instantiates a client
+
 client = vision.ImageAnnotatorClient()
 
 # The name of the image file to annotate
 file_name = os.path.join(
     os.path.dirname(__file__),
-<<<<<<< HEAD
-    'IMG_3124.JPG')
-=======
-    'wholesome_pic.png')
->>>>>>> 7bc22369913c81ada3fcc023ad6fea2c2acc540a
+    'Amazon_10-K_2018-18.png')
 
 # Loads the image into memory
 with io.open(file_name, 'rb') as image_file:
@@ -26,16 +26,120 @@ image = types.Image(content=content)
 # Performs label detection on the image file
 response = client.label_detection(image=image)
 labels = response.label_annotations
+document = response.full_text_annotation
 
 print('Labels:')
 for label in labels:
     print(label.description)
 
 #find document type method
-def findDocType():
-	print("I am finding doc type!")
+print("I am finding doc type!")
 
-findDocType()
+#findDocType()
+
+def detect_text(path, word, year):
+    """Detects text in the file."""
+    from google.cloud import vision
+    client = vision.ImageAnnotatorClient()
+
+    with io.open(path, 'rb') as image_file:
+        content = image_file.read()
+
+    image = vision.types.Image(content=content)
+
+    response = client.text_detection(image=image)
+    texts = response.text_annotations
+    print('Texts:')
+
+    for text in texts:
+        if text.description==word:
+            print('\n"{}"'.format(text.description))
+            vertices1 = ({'({},{})'.format(vertex.x, vertex.y)
+                for vertex in text.bounding_poly.vertices})
+            print('bounds: {}'.format(','.join(vertices1)))
+    vy = [int((tup.split(","))[1][0:-1]) for tup in vertices1]
+    vy = sorted(list(dict.fromkeys(vy)))
+
+
+    for text in texts:
+        if text.description==year:
+            print('\n"{}"'.format(text.description))
+            vertices2 = (['({},{})'.format(vertex.x, vertex.y)
+                for vertex in text.bounding_poly.vertices])
+            print('bounds: {}'.format(','.join(vertices2)))
+    vx = [int((tup.split(","))[0][1:]) for tup in vertices2]
+    vx = sorted(list(dict.fromkeys(vx)))
+
+
+    for text in texts:
+        maybe = (['({},{})'.format(vertex.x, vertex.y)
+                for vertex in text.bounding_poly.vertices])
+        my = [(tup.split(","))[1][0:-1] for tup in maybe]
+        my = sorted(list(dict.fromkeys(my)))
+        mx = [int((tup.split(","))[0][1:]) for tup in maybe]
+        mx = sorted(list(dict.fromkeys(mx)))
+        if vy[0] == int(my[0]):
+            if vx[1] in range(mx[0], mx[1]):
+                print(text.description)
+
+def detect_document(path):
+    """Detects document features in an image."""
+    from google.cloud import vision
+    client = vision.ImageAnnotatorClient()
+
+    with io.open(path, 'rb') as image_file:
+        content = image_file.read()
+
+    image = vision.types.Image(content=content)
+
+    response = client.document_text_detection(image=image)
+
+    for page in response.full_text_annotation.pages:
+        for block in page.blocks:
+            print('\nBlock confidence: {}\n'.format(block.confidence))
+
+            for paragraph in block.paragraphs:
+                print('Paragraph confidence: {}'.format(
+                    paragraph.confidence))
+
+                for word in paragraph.words:
+                    word_text = ''.join([
+                        symbol.text for symbol in word.symbols
+                    ])
+                    print('Word text: {} (confidence: {})'.format(
+                        word_text, word.confidence))
+
+                    for symbol in word.symbols:
+                        print('\tSymbol: {} (confidence: {})'.format(
+                            symbol.text, symbol.confidence))
+
+                    for symbol in word.symbols:
+                        print(symbol.text)
+
+
+#detect_document('./Amazon_10-k_2018-18.png')
+
+detect_text('./Amazon_10-k_2018-18.png', "sales", "2014")
+
+
+def assemble_word(word):
+    assembled_word=""
+    for symbol in word.symbols:
+        assembled_word+=symbol.text
+    return assembled_word
+
+def find_word_location(document,word_to_find):
+    for page in document.pages:
+        for block in page.blocks:
+            for paragraph in block.paragraphs:
+                for word in paragraph.words:
+                    assembled_word=assemble_word(word_to_find)
+                    if(assembled_word==word_to_find):
+                        return word.bounding_box
+
+location=find_word_location(document,"for")
+print(location)
+
 
 #check if table method that returns true or false
 #
