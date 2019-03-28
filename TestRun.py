@@ -155,9 +155,10 @@ def isTable(path, word):
     texts = response.text_annotations
     #everything above this is just the setup for reading in all of the words and polygons
 
-    #this part below checks fot the input word
-    mightBeTable = []
+    #this part below checks for the input word
+    truthArray = []
     for text in texts:
+        mightBeTable = []
         if text.description==word:
             #this part checks back through the whole list of all words to find words with the correct dimensions for their bounding boxes.
             yVertexSet = set()
@@ -169,18 +170,26 @@ def isTable(path, word):
             topVertex = min(yVertexSet)
             bottomVertex = max(yVertexSet)
             #til this point, it is setting the bounds for the "correct dimensions"
-            for word in texts:
-                for v in word.bounding_poly.vertices:
-                    if (topVertex <= v.y and v.y <= bottomVertex) or (topVertex > v.y and bottomVertex) and v.x > rightVertex: #checks to see if any vertex of the examined word is in line with the original word, as well as being to the right of the original word
-                        mightBeTable.append(word)
-    #this next part is going to check to see if the words that were in the right place are numbers, thus qualifiying if the word is a row in a table
-    numberPercent = 0 #tracks how many of the words are numbers
-    totalWords = 0 #tracks how many words we examine
-    for word in mightBeTable:
-        if re.fullmatch(r'\(?\d+[.,0-9]*\)?', word.description) != None: #might be able to make this regex better if I account for the fact that there would be groups of three digits between commas
-            numberPercent += 1
-        totalWords += 1
-    return numberPercent/totalWords > 0.4
+            for word1 in texts:
+                y2VertexSet = set()
+                x2VertexSet = set()
+                for vertex in word1.bounding_poly.vertices:
+                    y2VertexSet.add(vertex.y)
+                    x2VertexSet.add(vertex.x)
+                right2Vertex = max(x2VertexSet)
+                top2Vertex = min(y2VertexSet)
+                bottom2Vertex = max(y2VertexSet)
+                if right2Vertex > rightVertex and ((topVertex <= top2Vertex) or (bottomVertex >= bottom2Vertex) or ((topVertex >= top2Vertex) and (bottomVertex <= bottom2Vertex))): #checks to see if any vertex of the examined word is in line with the original word, as well as being to the right of the original word
+                    mightBeTable.append(word1)
+            #this next part is going to check to see if the words that were in the right place are numbers, thus qualifiying if the word is a row in a table
+            numberPercent = 0 #tracks how many of the words are numbers
+            totalWords = 0 #tracks how many words we examine
+            for word in mightBeTable:
+                if re.fullmatch(r'\(?\d+[.,0-9]*\)?', word.description) != None: #might be able to make this regex better if I account for the fact that there would be groups of three digits between commas
+                    numberPercent += 1
+                totalWords += 1
+            truthArray.append(numberPercent/totalWords > 0.4)
+    return truthArray
 
 
 
