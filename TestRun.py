@@ -2,7 +2,7 @@ import io
 import os
 import argparse
 from enum import Enum
-
+import re
 # Imports the Google Cloud client library
 from google.cloud import vision
 from google.cloud.vision import types
@@ -141,6 +141,58 @@ location=find_word_location(document,"for")
 print(location)
 
 
+def isTable(path, word):
+    from google.cloud import vision
+    client = vision.ImageAnnotatorClient()
+
+    with io.open(path, 'rb') as image_file:
+        content = image_file.read()
+
+    image = vision.types.Image(content=content)
+
+    response = client.text_detection(image=image)
+    texts = response.text_annotations
+    #everything above this is just the setup for reading in all of the words and polygons
+
+    #this part below checks for the input word
+    truthArray = []
+    for text in texts:
+        mightBeTable = []
+        if text.description==word:
+            #this part checks back through the whole list of all words to find words with the correct dimensions for their bounding boxes.
+            yVertexSet = set()
+            xVertexSet = set()
+            for vertex in text.bounding_poly.vertices:
+                yVertexSet.add(vertex.y)
+                xVertexSet.add(vertex.x)
+            rightVertex = max(xVertexSet)
+            topVertex = min(yVertexSet)
+            bottomVertex = max(yVertexSet)
+            #til this point, it is setting the bounds for the "correct dimensions"
+            for word1 in texts:
+                y2VertexSet = set()
+                x2VertexSet = set()
+                for vertex in word1.bounding_poly.vertices:
+                    y2VertexSet.add(vertex.y)
+                    x2VertexSet.add(vertex.x)
+                right2Vertex = max(x2VertexSet)
+                top2Vertex = min(y2VertexSet)
+                bottom2Vertex = max(y2VertexSet)
+                if right2Vertex > rightVertex and ((topVertex <= top2Vertex and top2Vertex < bottomVertex) or (bottomVertex >= bottom2Vertex and bottom2Vertex >= topVertex)  or ((topVertex >= top2Vertex) and (bottomVertex <= bottom2Vertex))): #checks to see if any vertex of the examined word is in line with the original word, as well as being to the right of the original word
+                    mightBeTable.append(word1)
+            #this next part is going to check to see if the words that were in the right place are numbers, thus qualifiying if the word is a row in a table
+            numberPercent = 0 #tracks how many of the words are numbers
+            totalWords = 0 #tracks how many words we examine
+            for word2 in mightBeTable:
+                if re.fullmatch(r'\(?\d+[.,0-9]*\)?', word2.description) != None: #might be able to make this regex better if I account for the fact that there would be groups of three digits between commas
+                    numberPercent += 1
+                totalWords += 1
+            truthArray.append(numberPercent/totalWords > 0.4)
+    return truthArray
+
+
+
+print(isTable('./Amazon_10-k_2018-18.png', "earnings"))
 #check if table method that returns true or false
 #
 #method-> extract data
