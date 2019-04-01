@@ -3,7 +3,7 @@ import os
 import argparse
 from enum import Enum
 import re
-
+import sys
 # Imports the Google Cloud client library
 from google.cloud import vision
 from google.cloud.vision import types
@@ -179,8 +179,10 @@ def isTable(path, word):
                 right2Vertex = max(x2VertexSet)
                 top2Vertex = min(y2VertexSet)
                 bottom2Vertex = max(y2VertexSet)
-                if right2Vertex > rightVertex and ((topVertex <= top2Vertex) or (bottomVertex >= bottom2Vertex) or ((topVertex >= top2Vertex) and (bottomVertex <= bottom2Vertex))): #checks to see if any vertex of the examined word is in line with the original word, as well as being to the right of the original word
+                if right2Vertex > rightVertex and ((topVertex <= top2Vertex and top2Vertex < bottomVertex) or (bottomVertex >= bottom2Vertex and bottom2Vertex >= topVertex)  or ((topVertex >= top2Vertex) and (bottomVertex <= bottom2Vertex))): #checks to see if any vertex of the examined word is in line with the original word, as well as being to the right of the original word
                     mightBeTable.append(word1)
+                    print("r: "+str(rightVertex) + ", r2: " + str(right2Vertex) +", t: " + str(topVertex) + ", t2: " + str(top2Vertex) + ", b: " + str(bottomVertex) + ", b2: " +  str(bottom2Vertex))
+                    print(word1)
             #this next part is going to check to see if the words that were in the right place are numbers, thus qualifiying if the word is a row in a table
             numberPercent = 0 #tracks how many of the words are numbers
             totalWords = 0 #tracks how many words we examine
@@ -193,8 +195,8 @@ def isTable(path, word):
 
 
 
-
-print(isTable('./Amazon_10-k_2018-18.png', "sales"))
+print(sys.argv[1])
+print(isTable('./Amazon_10-k_2018-18.png', sys.argv[1]))
 #check if table method that returns true or false
 #
 #method-> extract data
