@@ -117,9 +117,43 @@ def detect_document(path):
                         print(symbol.text)
 
 
-#detect_document('./Amazon_10-k_2018-18.png')
 
-detect_text('./Amazon_10-k_2018-18.png', "sales", "2014")
+def get_confidence(word):
+
+    confidenceLevel = 1
+    confidenceCategory = 0
+    for symbol in word.symbols:
+        if symbol.confidence < confidenceLevel:
+            confidenceLevel = symbol.confidence
+    word.confidenceLevel = confidenceLevel
+    if confidenceLevel > .90:
+        confidenceCategory = 10
+    elif confidenceLevel > .80:
+        confidenceCategory = 9
+    elif confidenceLevel > .70:
+        confidenceCategory = 8
+    elif confidenceLevel > .60:
+        confidenceCategory = 7
+    elif confidenceLevel > .50:
+        confidenceCategory = 6
+    elif confidenceLevel > .40:
+        confidenceCategory = 5
+    elif confidenceLevel > .30:
+        confidenceCategory = 4
+    elif confidenceLevel > .20:
+        confidenceCategory = 3
+    elif confidenceLevel > .10:
+        confidenceCategory = 2
+    else:
+        confidenceCategory = 1
+    word.confidence = confidenceCategory
+    return word.confidence
+
+
+
+detect_document('./Amazon_10-k_2018-18.png')
+
+#detect_text('./Amazon_10-k_2018-18.png', "sales", "2014")
 
 
 def assemble_word(word):
@@ -139,7 +173,6 @@ def find_word_location(document,word_to_find):
 
 location=find_word_location(document,"for")
 print(location)
-
 
 #check if table method that returns true or false
 #
