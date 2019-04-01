@@ -114,8 +114,9 @@ def detect_document(path):
                             symbol.text, symbol.confidence))
 
                     for symbol in word.symbols:
-                        print(symbol.text)
-
+                        #print(symbol.text)
+                    get_confidence(word)
+                    print(word.confidence)
 
 
 def get_confidence(word):
@@ -125,7 +126,6 @@ def get_confidence(word):
     for symbol in word.symbols:
         if symbol.confidence < confidenceLevel:
             confidenceLevel = symbol.confidence
-    word.confidenceLevel = confidenceLevel
     if confidenceLevel > .90:
         confidenceCategory = 10
     elif confidenceLevel > .80:
