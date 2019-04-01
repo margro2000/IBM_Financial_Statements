@@ -3,7 +3,6 @@ import os
 import argparse
 from enum import Enum
 import re
-import sys
 # Imports the Google Cloud client library
 from google.cloud import vision
 from google.cloud.vision import types
@@ -181,13 +180,11 @@ def isTable(path, word):
                 bottom2Vertex = max(y2VertexSet)
                 if right2Vertex > rightVertex and ((topVertex <= top2Vertex and top2Vertex < bottomVertex) or (bottomVertex >= bottom2Vertex and bottom2Vertex >= topVertex)  or ((topVertex >= top2Vertex) and (bottomVertex <= bottom2Vertex))): #checks to see if any vertex of the examined word is in line with the original word, as well as being to the right of the original word
                     mightBeTable.append(word1)
-                    print("r: "+str(rightVertex) + ", r2: " + str(right2Vertex) +", t: " + str(topVertex) + ", t2: " + str(top2Vertex) + ", b: " + str(bottomVertex) + ", b2: " +  str(bottom2Vertex))
-                    print(word1)
             #this next part is going to check to see if the words that were in the right place are numbers, thus qualifiying if the word is a row in a table
             numberPercent = 0 #tracks how many of the words are numbers
             totalWords = 0 #tracks how many words we examine
-            for word in mightBeTable:
-                if re.fullmatch(r'\(?\d+[.,0-9]*\)?', word.description) != None: #might be able to make this regex better if I account for the fact that there would be groups of three digits between commas
+            for word2 in mightBeTable:
+                if re.fullmatch(r'\(?\d+[.,0-9]*\)?', word2.description) != None: #might be able to make this regex better if I account for the fact that there would be groups of three digits between commas
                     numberPercent += 1
                 totalWords += 1
             truthArray.append(numberPercent/totalWords > 0.4)
@@ -195,8 +192,7 @@ def isTable(path, word):
 
 
 
-print(sys.argv[1])
-print(isTable('./Amazon_10-k_2018-18.png', sys.argv[1]))
+print(isTable('./Amazon_10-k_2018-18.png', "earnings")
 #check if table method that returns true or false
 #
 #method-> extract data
