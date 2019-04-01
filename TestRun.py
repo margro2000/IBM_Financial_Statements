@@ -192,7 +192,7 @@ def isTable(path, word):
 
 
 
-print(isTable('./Amazon_10-k_2018-18.png', "earnings")
+print(isTable('./Amazon_10-k_2018-18.png', "earnings"))
 #check if table method that returns true or false
 #
 #method-> extract data
