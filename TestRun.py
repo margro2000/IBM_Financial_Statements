@@ -1,53 +1,13 @@
-import io
-import os
-import argparse
+import io, os, argparse, re
 from enum import Enum
-import re
+
 # Imports the Google Cloud client library
 from google.cloud import vision
 from google.cloud.vision import types
-#from PIL import Image, ImageDraw
 
-# Instantiates a client
-
-client = vision.ImageAnnotatorClient()
-
-# The name of the image file to annotate
-file_name = os.path.join(
-    os.path.dirname(__file__),
-    'Amazon_10-K_2018-18.png')
-
-# Loads the image into memory
-with io.open(file_name, 'rb') as image_file:
-    content = image_file.read()
-
-image = types.Image(content=content)
-
-# Performs label detection on the image file
-response = client.label_detection(image=image)
-labels = response.label_annotations
-document = response.full_text_annotation
-
-print('Labels:')
-for label in labels:
-    print(label.description)
-
-#find document type method
-print("I am finding doc type!")
-
-#findDocType()
-
-def detect_text(path, word, year):
+def detect_text(response, path, word, year):
     """Detects text in the file."""
-    from google.cloud import vision
-    client = vision.ImageAnnotatorClient()
 
-    with io.open(path, 'rb') as image_file:
-        content = image_file.read()
-
-    image = vision.types.Image(content=content)
-
-    response = client.text_detection(image=image)
     texts = response.text_annotations
     print('Texts:')
 
@@ -60,7 +20,6 @@ def detect_text(path, word, year):
     vy = [int((tup.split(","))[1][0:-1]) for tup in vertices1]
     vy = sorted(list(dict.fromkeys(vy)))
 
-
     for text in texts:
         if text.description==year:
             print('\n"{}"'.format(text.description))
@@ -69,7 +28,6 @@ def detect_text(path, word, year):
             print('bounds: {}'.format(','.join(vertices2)))
     vx = [int((tup.split(","))[0][1:]) for tup in vertices2]
     vx = sorted(list(dict.fromkeys(vx)))
-
 
     for text in texts:
         maybe = (['({},{})'.format(vertex.x, vertex.y)
@@ -82,17 +40,8 @@ def detect_text(path, word, year):
             if vx[1] in range(mx[0], mx[1]):
                 print(text.description)
 
-def detect_document(path):
+def detect_document(response, path):
     """Detects document features in an image."""
-    from google.cloud import vision
-    client = vision.ImageAnnotatorClient()
-
-    with io.open(path, 'rb') as image_file:
-        content = image_file.read()
-
-    image = vision.types.Image(content=content)
-
-    response = client.document_text_detection(image=image)
 
     for page in response.full_text_annotation.pages:
         for block in page.blocks:
@@ -116,12 +65,6 @@ def detect_document(path):
                     for symbol in word.symbols:
                         print(symbol.text)
 
-
-#detect_document('./Amazon_10-k_2018-18.png')
-
-detect_text('./Amazon_10-k_2018-18.png', "sales", "2014")
-
-
 def assemble_word(word):
     assembled_word=""
     for symbol in word.symbols:
@@ -137,22 +80,8 @@ def find_word_location(document,word_to_find):
                     if(assembled_word==word_to_find):
                         return word.bounding_box
 
-location=find_word_location(document,"for")
-print(location)
-
-
-def isTable(path, word):
-    from google.cloud import vision
-    client = vision.ImageAnnotatorClient()
-
-    with io.open(path, 'rb') as image_file:
-        content = image_file.read()
-
-    image = vision.types.Image(content=content)
-
-    response = client.text_detection(image=image)
+def isTable(response, path, word):
     texts = response.text_annotations
-    #everything above this is just the setup for reading in all of the words and polygons
 
     #this part below checks for the input word
     truthArray = []
@@ -190,10 +119,34 @@ def isTable(path, word):
             truthArray.append(numberPercent/totalWords > 0.4)
     return truthArray
 
+if __name__=="__main__":
+    # Instantiates a client
+    client = vision.ImageAnnotatorClient()
 
+    # The name of the image file to annotate
+    file_name = os.path.join(os.path.dirname(__file__),'Amazon_10-K_2018-18.png')
 
-print(isTable('./Amazon_10-k_2018-18.png', "earnings"))
-#check if table method that returns true or false
-#
-#method-> extract data
-#parameter String-> extraction World
+    # Loads the image into memory
+    with io.open(file_name, 'rb') as image_file:
+        content = image_file.read()
+    image = types.Image(content=content)
+
+    # Performs label detection on the image file
+    response_label = client.label_detection(image=image)
+    labels = response_label.label_annotations
+    document = response_label.full_text_annotation
+    location=find_word_location(document,"for")
+    print(location)
+
+    print('Labels:')
+    for label in labels:
+        print(label.description)
+
+    response_doc = client.document_text_detection(image=image)
+    response = client.text_detection(image=image)
+
+    #detect_document(response_doc, './Amazon_10-k_2018-18.png')
+
+    detect_text(response, './Amazon_10-k_2018-18.png', "sales", "2014")
+
+    print(isTable(response, './Amazon_10-k_2018-18.png', "earnings"))
