@@ -119,6 +119,35 @@ def isTable(response, path, word):
             truthArray.append(numberPercent/totalWords > 0.4)
     return truthArray
 
+def get_confidence(word):
+    confidenceLevel = 1
+    confidenceCategory = 0
+    for symbol in word.symbols:
+        if symbol.confidence < confidenceLevel:
+            confidenceLevel = symbol.confidence
+    if confidenceLevel > .90:
+        confidenceCategory = 10
+    elif confidenceLevel > .80:
+        confidenceCategory = 9
+    elif confidenceLevel > .70:
+        confidenceCategory = 8
+    elif confidenceLevel > .60:
+        confidenceCategory = 7
+    elif confidenceLevel > .50:
+        confidenceCategory = 6
+    elif confidenceLevel > .40:
+        confidenceCategory = 5
+    elif confidenceLevel > .30:
+        confidenceCategory = 4
+    elif confidenceLevel > .20:
+        confidenceCategory = 3
+    elif confidenceLevel > .10:
+        confidenceCategory = 2
+    else:
+        confidenceCategory = 1
+    word.confidence = confidenceCategory
+    return word.confidence
+
 if __name__=="__main__":
     # Instantiates a client
     client = vision.ImageAnnotatorClient()
