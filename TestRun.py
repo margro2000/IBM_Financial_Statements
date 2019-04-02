@@ -5,6 +5,7 @@ from enum import Enum
 from google.cloud import vision
 from google.cloud.vision import types
 
+# Finds input word and input year on page, finds each x and y-values for inputs, and extracts number at the intersection of x y values
 def detect_text(response, path, word, year):
     """Detects text in the file."""
 
@@ -19,6 +20,7 @@ def detect_text(response, path, word, year):
             print('bounds: {}'.format(','.join(vertices1)))
     vy = [int((tup.split(","))[1][0:-1]) for tup in vertices1]
     vy = sorted(list(dict.fromkeys(vy)))
+
 
     for text in texts:
         if text.description==year:
@@ -80,6 +82,7 @@ def find_word_location(document,word_to_find):
                     if(assembled_word==word_to_find):
                         return word.bounding_box
 
+# Checks all instaces of 'word' on single page and returns and array of True/False based on if they are in a table or not
 def isTable(response, path, word):
     texts = response.text_annotations
 
@@ -113,12 +116,14 @@ def isTable(response, path, word):
             numberPercent = 0 #tracks how many of the words are numbers
             totalWords = 0 #tracks how many words we examine
             for word2 in mightBeTable:
+     
                 if re.fullmatch(r'\(?\d+[.,0-9]*\)?', word2.description) != None: #might be able to make this regex better if I account for the fact that there would be groups of three digits between commas
                     numberPercent += 1
                 totalWords += 1
             truthArray.append(numberPercent/totalWords > 0.4)
     return truthArray
 
+#checks OCR cnfidence for each character/digit in extracted number and chooses lowest one for overall confidence. 
 def get_confidence(word):
     confidenceLevel = 1
     confidenceCategory = 0
@@ -161,21 +166,21 @@ if __name__=="__main__":
     image = types.Image(content=content)
 
     # Performs label detection on the image file
-    response_label = client.label_detection(image=image)
-    labels = response_label.label_annotations
-    document = response_label.full_text_annotation
-    location=find_word_location(document,"for")
-    print(location)
+    #response_label = client.label_detection(image=image)
+    #labels = response_label.label_annotations
+    #document = response_label.full_text_annotation
+    #location=find_word_location(document,"for")
+    #print(location)
 
-    print('Labels:')
-    for label in labels:
-        print(label.description)
+    #print('Labels:')
+    #for label in labels:
+    #    print(label.description)
 
     response_doc = client.document_text_detection(image=image)
     response = client.text_detection(image=image)
 
-    #detect_document(response_doc, './Amazon_10-k_2018-18.png')
+    #detect_document(response_doc, file_name)
 
-    detect_text(response, './Amazon_10-k_2018-18.png', "sales", "2014")
+    detect_text(response, file_name, "sales", "2014")
 
-    print(isTable(response, './Amazon_10-k_2018-18.png', "earnings"))
+    print(isTable(response, file_name, "earnings"))
