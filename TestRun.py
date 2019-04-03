@@ -1,5 +1,6 @@
 import io, os, argparse, re
 from enum import Enum
+import csv
 
 # Imports the Google Cloud client library
 from google.cloud import vision
@@ -40,8 +41,26 @@ def detect_text(response, path, word, year):
         mx = sorted(list(dict.fromkeys(mx)))
         if vy[0] == int(my[0]):
             if vx[1] in range(mx[0], mx[1]):
-                print(text.description)
+                output = text.description
+                print(output)
 
+    try:
+        with open("output.csv", "a") as x:
+            x.write(word + ",")
+            x.write(year + ",")
+            if "," in output:
+                z=output.split(",")
+                y= "".join(z)
+                x.write(y + "\n")
+    except:
+        with open("output.csv", "wt") as x:
+            x.write("Measure,Year,Value\n")
+            x.write(word + ",")
+            x.write(year + ",")
+            if "," in output:
+                z=output.split(",")
+                y= "".join(z)
+                x.write(y + "\n")
 
 def detect_document(response, path):
     """Detects document features in an image."""
@@ -188,6 +207,6 @@ if __name__=="__main__":
 
     #detect_document(response_doc, file_name)
 
-    detect_text(response, file_name, "sales", theyear)
+    detect_text(response, file_name, "sales", "2017")
 
     print(isTable(response, file_name, "earnings"))
