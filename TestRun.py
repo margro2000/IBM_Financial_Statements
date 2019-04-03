@@ -12,12 +12,17 @@ from google.cloud.vision import types
 
 client = vision.ImageAnnotatorClient()
 
+theFile= 'Amazon_10-K_2018-18.png'
+
+theyear=theFile.split("-")[1][2:]
+
+
 # The name of the image file to annotate
 file_name = os.path.join(
     os.path.dirname(__file__),
-    'Amazon_10-K_2018-18.png')
+    theFile)
 
-# Loads the image into memory
+#Loads the image into memory
 with io.open(file_name, 'rb') as image_file:
     content = image_file.read()
 
@@ -82,6 +87,7 @@ def detect_text(path, word, year):
             if vx[1] in range(mx[0], mx[1]):
                 print(text.description)
 
+
 def detect_document(path):
     """Detects document features in an image."""
     from google.cloud import vision
@@ -119,7 +125,7 @@ def detect_document(path):
 
 #detect_document('./Amazon_10-k_2018-18.png')
 
-detect_text('./Amazon_10-k_2018-18.png', "sales", "2014")
+detect_text('./Amazon_10-k_2018-18.png', "sales", theyear)
 
 
 def assemble_word(word):
