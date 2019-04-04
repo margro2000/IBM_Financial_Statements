@@ -44,23 +44,7 @@ def detect_text(response, path, word, year):
                 output = text.description
                 print(output)
 
-    try:
-        with open("output.csv", "a") as x:
-            x.write(word + ",")
-            x.write(year + ",")
-            if "," in output:
-                z=output.split(",")
-                y= "".join(z)
-                x.write(y + "\n")
-    except:
-        with open("output.csv", "wt") as x:
-            x.write("Measure,Year,Value\n")
-            x.write(word + ",")
-            x.write(year + ",")
-            if "," in output:
-                z=output.split(",")
-                y= "".join(z)
-                x.write(y + "\n")
+    append_csv(word, year, output)
 
 def detect_document(response, path):
     """Detects document features in an image."""
@@ -172,6 +156,25 @@ def get_confidence(word):
         confidenceCategory = 1
     word.confidence = confidenceCategory
     return word.confidence
+
+def append_csv(measure, year, value):
+    try:
+        with open("results.csv", "a") as x:
+            x.write(measure + ",")
+            x.write(year + ",")
+            if "," in value:
+                z=value.split(",")
+                y= "".join(z)
+                x.write(y + "\n")
+    except:
+        with open("results.csv", "wt") as x:
+            x.write("Measure,Year,Value\n")
+            x.write(measure + ",")
+            x.write(year + ",")
+            if "," in value:
+                z=value.split(",")
+                y= "".join(z)
+                x.write(y + "\n")
 
 if __name__=="__main__":
     # Instantiates a client
