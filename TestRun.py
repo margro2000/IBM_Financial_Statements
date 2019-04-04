@@ -159,7 +159,7 @@ def get_confidence(word):
 
 def append_csv(measure, year, value):
     try:
-        with open("results.csv", "a") as x:
+        with open("TestRun.csv", "a") as x:
             x.write(measure + ",")
             x.write(year + ",")
             if "," in value:
@@ -167,7 +167,7 @@ def append_csv(measure, year, value):
                 y= "".join(z)
                 x.write(y + "\n")
     except:
-        with open("results.csv", "wt") as x:
+        with open("TestRun.csv", "wt") as x:
             x.write("Measure,Year,Value\n")
             x.write(measure + ",")
             x.write(year + ",")
