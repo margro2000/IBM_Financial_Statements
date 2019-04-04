@@ -153,7 +153,23 @@ def get_confidence(word):
     word.confidence = confidenceCategory
     return word.confidence
 
+def pdfToPng(path):
+    # pages = convert_from_path(path, 500)
+    # counter = 1
+    # for page in pages:
+    #     page.save(path[:-4] + str(counter) + '.png', 'PNG')
+
+    with(Image(filename=path, resolution=120)) as source: 
+        images = source.sequence
+        pages = len(images)
+        for i in range(pages):
+            n = i + 1
+            newfilename = f[:-4] + str(n) + '.png'
+            Image(images[i]).save(filename=newfilename)
+
 if __name__=="__main__":
+
+    pdfToPng("Alphabet_10K_2017.pdf")
     # Instantiates a client
     client = vision.ImageAnnotatorClient()
 
