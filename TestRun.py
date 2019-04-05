@@ -1,5 +1,6 @@
 import io, os, argparse, re
 from enum import Enum
+import csv
 
 # Imports the Google Cloud client library
 from google.cloud import vision
@@ -40,7 +41,10 @@ def detect_text(response, path, word, year):
         mx = sorted(list(dict.fromkeys(mx)))
         if vy[0] == int(my[0]):
             if vx[1] in range(mx[0], mx[1]):
-                print(text.description)
+                output = text.description
+                print(output)
+
+    append_csv(word, year, output)
 
 def detect_document(response, path):
     """Detects document features in an image."""
@@ -153,12 +157,37 @@ def get_confidence(word):
     word.confidence = confidenceCategory
     return word.confidence
 
+def append_csv(measure, year, value):
+    try:
+        with open("TestRun.csv", "a") as x:
+            x.write(measure + ",")
+            x.write(year + ",")
+            if "," in value:
+                z=value.split(",")
+                y= "".join(z)
+                x.write(y + "\n")
+    except:
+        with open("TestRun.csv", "wt") as x:
+            x.write("Measure,Year,Value\n")
+            x.write(measure + ",")
+            x.write(year + ",")
+            if "," in value:
+                z=value.split(",")
+                y= "".join(z)
+                x.write(y + "\n")
+
 if __name__=="__main__":
     # Instantiates a client
     client = vision.ImageAnnotatorClient()
 
+    theFile = 'Amazon_10-K_2018-18.png'
+
+    theyear = theFile.split("-")[1][2:]
+
     # The name of the image file to annotate
-    file_name = os.path.join(os.path.dirname(__file__),'Amazon_10-K_2018-18.png')
+    file_name = os.path.join(
+        os.path.dirname(__file__),
+        theFile)
 
     # Loads the image into memory
     with io.open(file_name, 'rb') as image_file:
