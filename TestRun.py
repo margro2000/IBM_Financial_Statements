@@ -116,14 +116,14 @@ def isTable(response, path, word):
             numberPercent = 0 #tracks how many of the words are numbers
             totalWords = 0 #tracks how many words we examine
             for word2 in mightBeTable:
-     
+
                 if re.fullmatch(r'\(?\d+[.,0-9]*\)?', word2.description) != None: #might be able to make this regex better if I account for the fact that there would be groups of three digits between commas
                     numberPercent += 1
                 totalWords += 1
             truthArray.append(numberPercent/totalWords > 0.4)
     return truthArray
 
-#checks OCR cnfidence for each character/digit in extracted number and chooses lowest one for overall confidence. 
+#checks OCR cnfidence for each character/digit in extracted number and chooses lowest one for overall confidence.
 def get_confidence(word):
     confidenceLevel = 1
     confidenceCategory = 0
@@ -181,6 +181,6 @@ if __name__=="__main__":
 
     #detect_document(response_doc, file_name)
 
-    detect_text(response, file_name, "sales", "2014")
+    detect_text(response, file_name, "sales", "2018")
 
     print(isTable(response, file_name, "earnings"))
