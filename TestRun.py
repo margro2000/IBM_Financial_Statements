@@ -1,5 +1,6 @@
 import io, os, argparse, re
 from enum import Enum
+import csv
 
 # Imports the Google Cloud client library
 from google.cloud import vision
@@ -42,7 +43,10 @@ def detect_text(response, path, word, year):
         mx = sorted(list(dict.fromkeys(mx)))
         if vy[0] == int(my[0]):
             if vx[1] in range(mx[0], mx[1]):
-                print(text.description)
+                output = text.description
+                print(output)
+
+    append_csv(word, year, output)
 
 def detect_document(response, path):
     """Detects document features in an image."""
@@ -118,14 +122,14 @@ def isTable(response, path, word):
             numberPercent = 0 #tracks how many of the words are numbers
             totalWords = 0 #tracks how many words we examine
             for word2 in mightBeTable:
-     
+
                 if re.fullmatch(r'\(?\d+[.,0-9]*\)?', word2.description) != None: #might be able to make this regex better if I account for the fact that there would be groups of three digits between commas
                     numberPercent += 1
                 totalWords += 1
             truthArray.append(numberPercent/totalWords > 0.4)
     return truthArray
 
-#checks OCR cnfidence for each character/digit in extracted number and chooses lowest one for overall confidence. 
+#checks OCR cnfidence for each character/digit in extracted number and chooses lowest one for overall confidence.
 def get_confidence(word):
     confidenceLevel = 1
     confidenceCategory = 0
@@ -168,6 +172,24 @@ def pdfToPng(path, popplerPath):
     #         n = i + 1
     #         newfilename = f[:-4] + str(n) + '.png'
     #         Image(images[i]).save(filename=newfilename)
+def append_csv(measure, year, value):
+    try:
+        with open("TestRun.csv", "a") as x:
+            x.write(measure + ",")
+            x.write(year + ",")
+            if "," in value:
+                z=value.split(",")
+                y= "".join(z)
+                x.write(y + "\n")
+    except:
+        with open("TestRun.csv", "wt") as x:
+            x.write("Measure,Year,Value\n")
+            x.write(measure + ",")
+            x.write(year + ",")
+            if "," in value:
+                z=value.split(",")
+                y= "".join(z)
+                x.write(y + "\n")
 
 if __name__=="__main__":
 
@@ -175,8 +197,14 @@ if __name__=="__main__":
     # Instantiates a client
     client = vision.ImageAnnotatorClient()
 
+    theFile = 'Amazon_10-K_2018-18.png'
+
+    theyear = theFile.split("-")[1][2:]
+
     # The name of the image file to annotate
-    file_name = os.path.join(os.path.dirname(__file__),'Amazon_10-K_2018-18.png')
+    file_name = os.path.join(
+        os.path.dirname(__file__),
+        theFile)
 
     # Loads the image into memory
     with io.open(file_name, 'rb') as image_file:
@@ -199,6 +227,6 @@ if __name__=="__main__":
 
     #detect_document(response_doc, file_name)
 
-    detect_text(response, file_name, "sales", "2014")
+    detect_text(response, file_name, "sales", "2018")
 
     print(isTable(response, file_name, "earnings"))
