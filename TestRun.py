@@ -4,6 +4,8 @@ from enum import Enum
 # Imports the Google Cloud client library
 from google.cloud import vision
 from google.cloud.vision import types
+#from wand.image import Image
+from pdf2image import convert_from_path
 
 # Finds input word and input year on page, finds each x and y-values for inputs, and extracts number at the intersection of x y values
 def detect_text(response, path, word, year):
@@ -153,23 +155,23 @@ def get_confidence(word):
     word.confidence = confidenceCategory
     return word.confidence
 
-def pdfToPng(path):
-    # pages = convert_from_path(path, 500)
-    # counter = 1
-    # for page in pages:
-    #     page.save(path[:-4] + str(counter) + '.png', 'PNG')
+def pdfToPng(path, popplerPath):
+    pages = convert_from_path(path, 500, poppler_path = popplerPath)
+    counter = 1
+    for page in pages:
+        page.save(path[:-4] + str(counter) + '.png', 'PNG')
 
-    with(Image(filename=path, resolution=120)) as source: 
-        images = source.sequence
-        pages = len(images)
-        for i in range(pages):
-            n = i + 1
-            newfilename = f[:-4] + str(n) + '.png'
-            Image(images[i]).save(filename=newfilename)
+    # with(Image(filename=path, resolution=120)) as source: 
+    #     images = source.sequence
+    #     pages = len(images)
+    #     for i in range(pages):
+    #         n = i + 1
+    #         newfilename = f[:-4] + str(n) + '.png'
+    #         Image(images[i]).save(filename=newfilename)
 
 if __name__=="__main__":
 
-    pdfToPng("Alphabet_10K_2017.pdf")
+    pdfToPng("Alphabet_10K_2017.pdf", "C:\\Users\\Day to Day\\Downloads\\AFF540DC.Unpacker_v7353qx4kg3sa!App\\poppler-0.68.0_x86.7z\\poppler-0.68.0\\bin")
     # Instantiates a client
     client = vision.ImageAnnotatorClient()
 
