@@ -19,6 +19,23 @@ def create_labels():
     for label in labels:
         print(label.description)
 
+
+def printAllText(response, path):
+    texts = response.text_annotations
+    print('Texts:')
+
+    for text in texts:
+        print('\n"{}"'.format(text.description))
+
+        vertices = (['({},{})'.format(vertex.x, vertex.y)
+                    for vertex in text.bounding_poly.vertices])
+
+        print('bounds: {}'.format(','.join(vertices)))
+    # [END vision_python_migration_text_detection]
+# [END vision_text_detection]
+
+
+
 # Finds input word and input year on page, finds each x and y-values for inputs, and extracts number at the intersection of x y values
 def detect_text(response, path, word, year):
     """Detects text in the file."""
@@ -27,6 +44,7 @@ def detect_text(response, path, word, year):
     print('Texts:')
 
     #Finds word on page and its y vertices and  prints it as well as its y vertices
+    #try:
     for text in texts:
         if text.description==word:
             print('\n"{}"'.format(text.description))
@@ -36,7 +54,11 @@ def detect_text(response, path, word, year):
     vy = [int((tup.split(","))[1][0:-1]) for tup in vertices1]
     vy = sorted(list(dict.fromkeys(vy)))
 
-    #finds year on page and prints it as well as prints its y vertices
+   # except:
+        #print("Error extracting word")
+
+    #try:
+        #finds year on page and prints it as well as prints its y vertices
     for text in texts:
         if text.description==year:
             print('\n"{}"'.format(text.description))
@@ -46,19 +68,26 @@ def detect_text(response, path, word, year):
     vx = [int((tup.split(","))[0][1:]) for tup in vertices2]
     vx = sorted(list(dict.fromkeys(vx)))
 
+    #except:
+        #print("Error extracting year")
+
     #find match between x and y vertices and print output
-    for text in texts:
-        maybe = (['({},{})'.format(vertex.x, vertex.y)
-                for vertex in text.bounding_poly.vertices])
-        my = [(tup.split(","))[1][0:-1] for tup in maybe]
-        my = sorted(list(dict.fromkeys(my)))
-        mx = [int((tup.split(","))[0][1:]) for tup in maybe]
-        mx = sorted(list(dict.fromkeys(mx)))
-        if vy[0] == int(my[0]):
-            if vx[1] in range(mx[0], mx[1]):
-                output = text.description
-                print(output)
-                return output
+    try:
+        for text in texts:
+            maybe = (['({},{})'.format(vertex.x, vertex.y)
+                    for vertex in text.bounding_poly.vertices])
+            my = [(tup.split(","))[1][0:-1] for tup in maybe]
+            my = sorted(list(dict.fromkeys(my)))
+            mx = [int((tup.split(","))[0][1:]) for tup in maybe]
+            mx = sorted(list(dict.fromkeys(mx)))
+            if vy[0] == int(my[0]):
+                if vx[1] in range(mx[0], mx[1]):
+                    output = text.description
+                    print(output)
+                    return output
+
+    except:
+        print("Couldn't find intersection")
 
 # Checks all instaces of 'word' on single page and returns and array of True/False based on if they are in a table or not
 def isTable(response, path, word):
@@ -92,7 +121,7 @@ def isTable(response, path, word):
                 bottom2Vertex = max(y2VertexSet)
                 if right2Vertex > rightVertex and ((topVertex <= top2Vertex and top2Vertex < bottomVertex) or (bottomVertex >= bottom2Vertex and bottom2Vertex >= topVertex)  or ((topVertex >= top2Vertex) and (bottomVertex <= bottom2Vertex))): #checks to see if any vertex of the examined word is in line with the original word, as well as being to the right of the original word
                     mightBeTable.append(word1)
-            
+
             #this next part is going to check to see if the words that were in the right place are numbers, thus qualifiying if the word is a row in a table
             numberPercent = 0 #tracks how many of the words are numbers
             totalWords = 0 #tracks how many words we examine
@@ -137,9 +166,8 @@ def get_confidence(word):
 def append_csv(measure, year, value):
         try:
             with open("TestRun.csv", "a") as x:
-                print("daaaaaaaa")
                 x.write(measure + ",")
-                x.write(year + ",")
+                x.write(str(year) + ",")
                 if value:
                     if "," in value:
                         z=value.split(",")
@@ -163,11 +191,34 @@ def append_csv(measure, year, value):
                     x.write("\n")
                     print("append_csv: None Type value passed in...")
 
+
+def pdfToPng(path):
+    # pages = convert_from_path(path, 500)
+    # counter = 1
+    # for page in pages:
+    #     page.save(path[:-4] + str(counter) + '.png', 'PNG')
+
+    with(Image(filename=path, resolution=120)) as source:
+        images = source.sequence
+        pages = len(images)
+        for i in range(pages):
+            n = i + 1
+            newfilename = f[:-4] + str(n) + '.png'
+            Image(images[i]).save(filename=newfilename)
+
+def imgToCSV(client, path):
+    detect_text
+
+
+
 if __name__=="__main__":
+
+
     # Instantiates a client
     client = vision.ImageAnnotatorClient()
 
     theFile = 'Amazon_10-K_2018-18.png'
+    #theFile = pdfToPng("Alphabet_10K_2017.pdf")
 
     current_year = theFile.split("-")[1][2:]
 
@@ -183,12 +234,22 @@ if __name__=="__main__":
     response_doc = client.document_text_detection(image=image)
     response = client.text_detection(image=image)
 
+    word = "income"
+    current_year = theFile.split("-")[1][2:]
+
     #detect_document(response_doc, file_name)
 
-    word = "income"
+    current_year = int(current_year,10)
+    final_year = current_year - 4
+    while current_year >= final_year:
+        output = detect_text(response, file_name, word, str(current_year))
+        append_csv(word, current_year, output)
+        current_year = current_year - 1
 
-    create_labels()
-    output = detect_text(response, file_name, word, "2015")
-    append_csv(word, current_year, output)
+    printAllText(response, file_name)
+
+    #create_labels()
+
+
 
     print(isTable(response, file_name, "earnings"))
