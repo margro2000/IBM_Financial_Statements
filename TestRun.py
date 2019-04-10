@@ -1,6 +1,7 @@
 import io, os, argparse, re
 from enum import Enum
 import csv
+import re
 
 # Imports the Google Cloud client library
 from google.cloud import vision
@@ -57,34 +58,36 @@ def detect_text(response, path, word, year):
    # except:
         #print("Error extracting word")
 
-    #try:
+    try:
         #finds year on page and prints it as well as prints its y vertices
-    for text in texts:
-        if text.description==year:
-            print('\n"{}"'.format(text.description))
-            vertices2 = (['({},{})'.format(vertex.x, vertex.y)
-                for vertex in text.bounding_poly.vertices])
-            print('bounds: {}'.format(','.join(vertices2)))
-    vx = [int((tup.split(","))[0][1:]) for tup in vertices2]
-    vx = sorted(list(dict.fromkeys(vx)))
+        for text in texts:
+            if text.description==year:
+                print('\n"{}"'.format(text.description))
+                vertices2 = (['({},{})'.format(vertex.x, vertex.y)
+                    for vertex in text.bounding_poly.vertices])
+                print('bounds: {}'.format(','.join(vertices2)))
+        vx = [int((tup.split(","))[0][1:]) for tup in vertices2]
+        vx = sorted(list(dict.fromkeys(vx)))
 
-    #except:
-        #print("Error extracting year")
+    except:
+        print("Error extracting year")
 
     #find match between x and y vertices and print output
     try:
         for text in texts:
             maybe = (['({},{})'.format(vertex.x, vertex.y)
                     for vertex in text.bounding_poly.vertices])
-            my = [(tup.split(","))[1][0:-1] for tup in maybe]
+            my = [int((tup.split(","))[0][1:]) for tup in maybe]
             my = sorted(list(dict.fromkeys(my)))
             mx = [int((tup.split(","))[0][1:]) for tup in maybe]
             mx = sorted(list(dict.fromkeys(mx)))
-            if vy[0] == int(my[0]):
-                if vx[1] in range(mx[0], mx[1]):
+            if vy[0]==my[0]:#in range(my[0], my[1]): #or vy[1] in range(my[0], my[1]):
+                if vx[1] in range(mx[0], mx[1]): #or vx[0] in range(mx[0], mx[1]):
                     output = text.description
-                    print(output)
-                    return output
+                    test=re.search(r"[0-9]*,[0-9]{3}", output)
+                    if test:
+                        print(test.group())
+                        return test.group()
 
     except:
         print("Couldn't find intersection")
@@ -165,23 +168,24 @@ def get_confidence(word):
 
 def append_csv(measure, year, value):
         try:
-            with open("TestRun.csv", "a") as x:
-                x.write(measure + ",")
-                x.write(str(year) + ",")
-                if value:
-                    if "," in value:
-                        z=value.split(",")
-                        y= "".join(z)
-                        x.write(y + "\n")
-                else:
-                    x.write("\n")
-                    print("append_csv: None Type value passed in...")
+            with open("newfile2.csv", "rt") as w:
+                with open("newfile2.csv", "a") as x:
+                    x.write(measure + ",")
+                    x.write(str(year) + ",")
+                    if value:
+                        if "," in value:
+                            z=value.split(",")
+                            y= "".join(z)
+                            x.write(y + "\n")
+                    else:
+                        x.write("\n")
+                        print("append_csv: None Type value passed in...")
         except:
-            with open("TestRun.csv", "wt") as x:
+            with open("newfile2.csv", "wt") as x:
                 print("dzkjbzknb")
                 x.write("Measure,Year,Value\n")
                 x.write(measure + ",")
-                x.write(year + ",")
+                x.write(str(year) + ",")
                 if value:
                     if "," in value:
                         z=value.split(",")
@@ -234,22 +238,25 @@ if __name__=="__main__":
     response_doc = client.document_text_detection(image=image)
     response = client.text_detection(image=image)
 
-    word = "income"
+    word = "sales"
     current_year = theFile.split("-")[1][2:]
+
+    detect_text(response, file_name, word, "88,988")
+
 
     #detect_document(response_doc, file_name)
 
-    current_year = int(current_year,10)
-    final_year = current_year - 4
-    while current_year >= final_year:
-        output = detect_text(response, file_name, word, str(current_year))
-        append_csv(word, current_year, output)
-        current_year = current_year - 1
+    # current_year = int(current_year,10)
+    # final_year = current_year - 4
+    # while current_year >= final_year:
+    #     output = detect_text(response, file_name, word, str(current_year))
+    #     append_csv(word, current_year, output)
+    #     current_year = current_year - 1
 
-    printAllText(response, file_name)
+    #printAllText(response, file_name)
 
     #create_labels()
 
 
 
-    print(isTable(response, file_name, "earnings"))
+    # print(isTable(response, file_name, "earnings"))
