@@ -1,6 +1,7 @@
 import io, os, argparse, re
 from enum import Enum
 import csv
+import json
 
 # Imports the Google Cloud client library
 from google.cloud import vision
@@ -13,6 +14,7 @@ def detect_text(response, path, word, year):
     """Detects text in the file."""
 
     texts = response.text_annotations
+    doc_texts = response.full_text_annotation
     print('Texts:')
 
     for text in texts:
@@ -26,6 +28,7 @@ def detect_text(response, path, word, year):
 
 
     for text in texts:
+        #this willl capture the most recent instance of the year
         if text.description==year:
             print('\n"{}"'.format(text.description))
             vertices2 = (['({},{})'.format(vertex.x, vertex.y)
@@ -34,19 +37,35 @@ def detect_text(response, path, word, year):
     vx = [int((tup.split(","))[0][1:]) for tup in vertices2]
     vx = sorted(list(dict.fromkeys(vx)))
 
-    for text in texts:
-        maybe = (['({},{})'.format(vertex.x, vertex.y)
-                for vertex in text.bounding_poly.vertices])
-        my = [(tup.split(","))[1][0:-1] for tup in maybe]
-        my = sorted(list(dict.fromkeys(my)))
-        mx = [int((tup.split(","))[0][1:]) for tup in maybe]
-        mx = sorted(list(dict.fromkeys(mx)))
-        if vy[0] == int(my[0]):
-            if vx[1] in range(mx[0], mx[1]):
-                output = text.description
-                print(output)
+    output = ""
+    confidence = 0
+    print("VX" + str(vx))
+    for page in doc_texts.pages:
+            for block in page.blocks:
+                for paragraph in block.paragraphs:
+                    for word_obj in paragraph.words:
+                        #assemble word
+                        word_text = ''.join([
+                            symbol.text for symbol in word_obj.symbols
+                        ])
+                        mx =set()
+                        my =set()
+                        for vertex in word_obj.bounding_box.vertices:
+                            mx.add(vertex.x)
+                            my.add(vertex.y)
+                        my = min(my)
+                        mx = sorted(mx)
+                        if vy[0] == my:
+                            print(word_text)
+                            print(mx[0])
+                            print(mx[1])
+                            if mx[0] <= vx[1] and vx[1] <= mx[1]:
+                                output = word_text
+                                confidence = get_confidence(word_obj)
 
-    append_csv(word, year, output)
+    print(output)
+    print(confidence)
+    append_csv(word, year, output, confidence)
 
 def detect_document(response, path):
     """Detects document features in an image."""
@@ -160,10 +179,11 @@ def get_confidence(word):
     return word.confidence
 
 def pdfToPng(path, popplerPath):
-    pages = convert_from_path(path, 500, poppler_path = popplerPath)
-    counter = 1
-    for page in pages:
-        page.save(path[:-4] + str(counter) + '.png', 'PNG')
+    return
+    #pages = convert_from_path(path, 500, poppler_path = popplerPath)
+    #counter = 1
+    #for page in pages:
+    #    page.save(path[:-4] + str(counter) + '.png', 'PNG')
 
     # with(Image(filename=path, resolution=120)) as source: 
     #     images = source.sequence
@@ -172,7 +192,7 @@ def pdfToPng(path, popplerPath):
     #         n = i + 1
     #         newfilename = f[:-4] + str(n) + '.png'
     #         Image(images[i]).save(filename=newfilename)
-def append_csv(measure, year, value):
+def append_csv(measure, year, value, confidence):
     try:
         with open("TestRun.csv", "a") as x:
             x.write(measure + ",")
@@ -180,20 +200,23 @@ def append_csv(measure, year, value):
             if "," in value:
                 z=value.split(",")
                 y= "".join(z)
-                x.write(y + "\n")
+                x.write(y + ",")
+            x.write(str(confidence) + "\n")
+
     except:
         with open("TestRun.csv", "wt") as x:
-            x.write("Measure,Year,Value\n")
+            x.write("Measure,Year,Value,Confidencce\n")
             x.write(measure + ",")
             x.write(year + ",")
             if "," in value:
                 z=value.split(",")
                 y= "".join(z)
-                x.write(y + "\n")
+                x.write(y + ",")
+            x.write(str(confidence) + "\n")
 
 if __name__=="__main__":
 
-    pdfToPng("Alphabet_10K_2017.pdf", "C:\\Users\\Day to Day\\Downloads\\AFF540DC.Unpacker_v7353qx4kg3sa!App\\poppler-0.68.0_x86.7z\\poppler-0.68.0\\bin")
+    #pdfToPng("Alphabet_10K_2017.pdf", "C:\\Users\\Day to Day\\Downloads\\AFF540DC.Unpacker_v7353qx4kg3sa!App\\poppler-0.68.0_x86.7z\\poppler-0.68.0\\bin")
     # Instantiates a client
     client = vision.ImageAnnotatorClient()
 
