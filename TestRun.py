@@ -7,7 +7,7 @@ import json
 from google.cloud import vision
 from google.cloud.vision import types
 #from wand.image import Image
-from pdf2image import convert_from_path
+#from pdf2image import convert_from_path
 
 # Finds input word and input year on page, finds each x and y-values for inputs, and extracts number at the intersection of x y values
 def detect_text(response, path, word, year):
@@ -152,9 +152,12 @@ def isTable(response, path, word):
 def get_confidence(word):
     confidenceLevel = 1
     confidenceCategory = 0
+    # TODO: fix the fact that all confidences are zero
     for symbol in word.symbols:
+        print("symconf: " + str(symbol.confidence))
         if symbol.confidence < confidenceLevel:
             confidenceLevel = symbol.confidence
+            print("conflevel: " + str(confidenceLevel))
     if confidenceLevel > .90:
         confidenceCategory = 10
     elif confidenceLevel > .80:
@@ -175,8 +178,9 @@ def get_confidence(word):
         confidenceCategory = 2
     else:
         confidenceCategory = 1
-    word.confidence = confidenceCategory
-    return word.confidence
+    #word.confidence = confidenceCategory
+    #return word.confidence
+    return confidenceCategory
 
 def pdfToPng(path, popplerPath):
     return
@@ -194,25 +198,20 @@ def pdfToPng(path, popplerPath):
     #         Image(images[i]).save(filename=newfilename)
 def append_csv(measure, year, value, confidence):
     try:
-        with open("TestRun.csv", "a") as x:
-            x.write(measure + ",")
-            x.write(year + ",")
-            if "," in value:
-                z=value.split(",")
-                y= "".join(z)
-                x.write(y + ",")
-            x.write(str(confidence) + "\n")
-
+        with open("TestRun.csv", "r") as x:
+            pass
     except:
         with open("TestRun.csv", "wt") as x:
-            x.write("Measure,Year,Value,Confidencce\n")
-            x.write(measure + ",")
-            x.write(year + ",")
-            if "," in value:
-                z=value.split(",")
-                y= "".join(z)
-                x.write(y + ",")
-            x.write(str(confidence) + "\n")
+            x.write("Measure,Year,Value,Confidence\n")
+    
+    with open("TestRun.csv", "a") as x:
+        x.write(measure + ",")
+        x.write(year + ",")
+        if "," in value:
+            z=value.split(",")
+            y= "".join(z)
+            x.write(y + ",")
+        x.write(str(confidence) + "\n")
 
 if __name__=="__main__":
 
@@ -247,9 +246,16 @@ if __name__=="__main__":
 
     response_doc = client.document_text_detection(image=image)
     response = client.text_detection(image=image)
+    word = "sales"
+
+    current_year = int(theyear,10)
+    final_year = current_year - 4
+    while current_year >= final_year:
+        output = detect_text(response, file_name, word, str(current_year))
+        current_year = current_year - 1
 
     #detect_document(response_doc, file_name)
 
-    detect_text(response, file_name, "sales", "2018")
+    #detect_text(response, file_name, "sales", "2018")
 
-    print(isTable(response, file_name, "earnings"))
+    #print(isTable(response, file_name, "earnings"))
