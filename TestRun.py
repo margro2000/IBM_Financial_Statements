@@ -9,6 +9,36 @@ from google.cloud.vision import types
 #from wand.image import Image
 #from pdf2image import convert_from_path
 
+def create_labels():
+    with io.open(file_name, 'rb') as image_file:
+        content = image_file.read()
+    image = types.Image(content=content)
+
+    #Performs label detection on the image file
+    response_label = client.label_detection(image=image)
+    labels = response_label.label_annotations
+    document = response_label.full_text_annotation
+    print('Labels:')
+    for label in labels:
+        print(label.description)
+
+
+def printAllText(response, path):
+    texts = response.text_annotations
+    print('Texts:')
+
+    for text in texts:
+        print('\n"{}"'.format(text.description))
+
+        vertices = (['({},{})'.format(vertex.x, vertex.y)
+                    for vertex in text.bounding_poly.vertices])
+
+        print('bounds: {}'.format(','.join(vertices)))
+    # [END vision_python_migration_text_detection]
+# [END vision_text_detection]
+
+
+
 # Finds input word and input year on page, finds each x and y-values for inputs, and extracts number at the intersection of x y values
 def detect_text(response, path, word, year):
     """Detects text in the file."""
@@ -17,6 +47,8 @@ def detect_text(response, path, word, year):
     doc_texts = response.full_text_annotation
     print('Texts:')
 
+    #Finds word on page and its y vertices and  prints it as well as its y vertices
+    #try:
     for text in texts:
         if text.description==word:
             print('\n"{}"'.format(text.description))
@@ -26,7 +58,11 @@ def detect_text(response, path, word, year):
     vy = [int((tup.split(","))[1][0:-1]) for tup in vertices1]
     vy = sorted(list(dict.fromkeys(vy)))
 
+   # except:
+        #print("Error extracting word")
 
+    #try:
+        #finds year on page and prints it as well as prints its y vertices
     for text in texts:
         #this willl capture the most recent instance of the year
         if text.description==year:
@@ -116,6 +152,7 @@ def isTable(response, path, word):
     for text in texts:
         mightBeTable = []
         if text.description==word:
+
             #this part checks back through the whole list of all words to find words with the correct dimensions for their bounding boxes.
             yVertexSet = set()
             xVertexSet = set()
@@ -125,6 +162,7 @@ def isTable(response, path, word):
             rightVertex = max(xVertexSet)
             topVertex = min(yVertexSet)
             bottomVertex = max(yVertexSet)
+
             #til this point, it is setting the bounds for the "correct dimensions"
             for word1 in texts:
                 y2VertexSet = set()
@@ -137,6 +175,7 @@ def isTable(response, path, word):
                 bottom2Vertex = max(y2VertexSet)
                 if right2Vertex > rightVertex and ((topVertex <= top2Vertex and top2Vertex < bottomVertex) or (bottomVertex >= bottom2Vertex and bottom2Vertex >= topVertex)  or ((topVertex >= top2Vertex) and (bottomVertex <= bottom2Vertex))): #checks to see if any vertex of the examined word is in line with the original word, as well as being to the right of the original word
                     mightBeTable.append(word1)
+
             #this next part is going to check to see if the words that were in the right place are numbers, thus qualifiying if the word is a row in a table
             numberPercent = 0 #tracks how many of the words are numbers
             totalWords = 0 #tracks how many words we examine
@@ -183,7 +222,8 @@ def get_confidence(word):
     return confidenceCategory
 
 def pdfToPng(path, popplerPath):
-    return
+    pass
+    # TODO: implement pdfToPng
     #pages = convert_from_path(path, 500, poppler_path = popplerPath)
     #counter = 1
     #for page in pages:
@@ -196,6 +236,7 @@ def pdfToPng(path, popplerPath):
     #         n = i + 1
     #         newfilename = f[:-4] + str(n) + '.png'
     #         Image(images[i]).save(filename=newfilename)
+
 def append_csv(measure, year, value, confidence):
     try:
         with open("TestRun.csv", "r") as x:
@@ -214,48 +255,39 @@ def append_csv(measure, year, value, confidence):
         x.write(str(confidence) + "\n")
 
 if __name__=="__main__":
-
-    #pdfToPng("Alphabet_10K_2017.pdf", "C:\\Users\\Day to Day\\Downloads\\AFF540DC.Unpacker_v7353qx4kg3sa!App\\poppler-0.68.0_x86.7z\\poppler-0.68.0\\bin")
     # Instantiates a client
     client = vision.ImageAnnotatorClient()
 
     theFile = 'Amazon_10-K_2018-18.png'
+    #theFile = pdfToPng("Alphabet_10K_2017.pdf")
 
-    theyear = theFile.split("-")[1][2:]
+    current_year = theFile.split("-")[1][2:]
 
     # The name of the image file to annotate
     file_name = os.path.join(
         os.path.dirname(__file__),
         theFile)
 
-    # Loads the image into memory
     with io.open(file_name, 'rb') as image_file:
         content = image_file.read()
     image = types.Image(content=content)
-
-    # Performs label detection on the image file
-    #response_label = client.label_detection(image=image)
-    #labels = response_label.label_annotations
-    #document = response_label.full_text_annotation
-    #location=find_word_location(document,"for")
-    #print(location)
-
-    #print('Labels:')
-    #for label in labels:
-    #    print(label.description)
 
     response_doc = client.document_text_detection(image=image)
     response = client.text_detection(image=image)
     word = "sales"
 
-    current_year = int(theyear,10)
+    #detect_document(response_doc, file_name)
+
+    #detect_text(response, file_name, "sales", "2018")
+    
+    current_year = int(current_year,10)
     final_year = current_year - 4
     while current_year >= final_year:
         output = detect_text(response, file_name, word, str(current_year))
         current_year = current_year - 1
 
-    #detect_document(response_doc, file_name)
+    #printAllText(response, file_name)
 
-    #detect_text(response, file_name, "sales", "2018")
+    #create_labels()
 
     #print(isTable(response, file_name, "earnings"))
