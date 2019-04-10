@@ -58,19 +58,19 @@ def detect_text(response, path, word, year):
    # except:
         #print("Error extracting word")
 
-    try:
+    #try:
         #finds year on page and prints it as well as prints its y vertices
-        for text in texts:
-            if text.description==year:
-                print('\n"{}"'.format(text.description))
-                vertices2 = (['({},{})'.format(vertex.x, vertex.y)
-                    for vertex in text.bounding_poly.vertices])
-                print('bounds: {}'.format(','.join(vertices2)))
-        vx = [int((tup.split(","))[0][1:]) for tup in vertices2]
-        vx = sorted(list(dict.fromkeys(vx)))
+    for text in texts:
+        if text.description==year:
+            print('\n"{}"'.format(text.description))
+            vertices2 = ({'({},{})'.format(vertex.x, vertex.y)
+                for vertex in text.bounding_poly.vertices})
+            print('bounds: {}'.format(','.join(vertices2)))
+    vx = [int((tup.split(","))[0][1:]) for tup in vertices2]
+    vx = sorted(list(dict.fromkeys(vx)))
 
-    except:
-        print("Error extracting year")
+    # except:
+    #     print("Error extracting year")
 
     #find match between x and y vertices and print output
     try:
@@ -81,13 +81,23 @@ def detect_text(response, path, word, year):
             my = sorted(list(dict.fromkeys(my)))
             mx = [int((tup.split(","))[0][1:]) for tup in maybe]
             mx = sorted(list(dict.fromkeys(mx)))
-            if vy[0]==my[0]:#in range(my[0], my[1]): #or vy[1] in range(my[0], my[1]):
-                if vx[1] in range(mx[0], mx[1]): #or vx[0] in range(mx[0], mx[1]):
+            if vy[0] in range(my[0], my[1]) or vy[1] in range(my[0], my[1]):
+                if vx[1] in range(mx[0], mx[1]) or vx[0] in range(mx[0], mx[1]):
                     output = text.description
-                    test=re.search(r"[0-9]*,[0-9]{3}", output)
-                    if test:
+                    test=re.search(r"[0-9]{3},[0-9]{3}", output)
+                    if not test:
+                        test1=re.search(r"[0-9]{2},[0-9]{3}", output)
+                        if not test1:
+                            test2=re.search(r"[0-9]{1},[0-9]{3}")
+                            print(test2.group())
+                            return test2.group()
+                        else:
+                            print(test1.group())
+                            return test1.group()
+                    else:
                         print(test.group())
                         return test.group()
+
 
     except:
         print("Couldn't find intersection")
@@ -183,7 +193,7 @@ def append_csv(measure, year, value):
         except:
             with open("newfile2.csv", "wt") as x:
                 print("dzkjbzknb")
-                x.write("Measure,Year,Value\n")
+                x.write("Measure,Year,Value,Confidence\n")
                 x.write(measure + ",")
                 x.write(str(year) + ",")
                 if value:
@@ -238,20 +248,18 @@ if __name__=="__main__":
     response_doc = client.document_text_detection(image=image)
     response = client.text_detection(image=image)
 
-    word = "sales"
+    word = "income"
     current_year = theFile.split("-")[1][2:]
-
-    detect_text(response, file_name, word, "88,988")
 
 
     #detect_document(response_doc, file_name)
 
-    # current_year = int(current_year,10)
-    # final_year = current_year - 4
-    # while current_year >= final_year:
-    #     output = detect_text(response, file_name, word, str(current_year))
-    #     append_csv(word, current_year, output)
-    #     current_year = current_year - 1
+    current_year = int(current_year,10)
+    final_year = current_year - 4
+    while current_year >= final_year:
+        output = detect_text(response, file_name, word, str(current_year))
+        append_csv(word, current_year, output)
+        current_year = current_year - 1
 
     #printAllText(response, file_name)
 
