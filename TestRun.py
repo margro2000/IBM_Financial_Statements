@@ -1,10 +1,13 @@
 import io, os, argparse, re
 from enum import Enum
 import csv
+import json
 
 # Imports the Google Cloud client library
 from google.cloud import vision
 from google.cloud.vision import types
+#from wand.image import Image
+#from pdf2image import convert_from_path
 
 def create_labels():
     with io.open(file_name, 'rb') as image_file:
@@ -41,53 +44,112 @@ def detect_text(response, path, word, year):
     """Detects text in the file."""
 
     texts = response.text_annotations
+    doc_texts = response.full_text_annotation
+    #count = -1
     print('Texts:')
 
     #Finds word on page and its y vertices and  prints it as well as its y vertices
-    #try:
-    for text in texts:
-        if text.description==word:
-            print('\n"{}"'.format(text.description))
-            vertices1 = ({'({},{})'.format(vertex.x, vertex.y)
-                for vertex in text.bounding_poly.vertices})
-            print('bounds: {}'.format(','.join(vertices1)))
-    vy = [int((tup.split(","))[1][0:-1]) for tup in vertices1]
-    vy = sorted(list(dict.fromkeys(vy)))
-
-   # except:
-        #print("Error extracting word")
-
-    #try:
-        #finds year on page and prints it as well as prints its y vertices
-    for text in texts:
-        if text.description==year:
-            print('\n"{}"'.format(text.description))
-            vertices2 = (['({},{})'.format(vertex.x, vertex.y)
-                for vertex in text.bounding_poly.vertices])
-            print('bounds: {}'.format(','.join(vertices2)))
-    vx = [int((tup.split(","))[0][1:]) for tup in vertices2]
-    vx = sorted(list(dict.fromkeys(vx)))
-
-    #except:
-        #print("Error extracting year")
-
-    #find match between x and y vertices and print output
     try:
         for text in texts:
-            maybe = (['({},{})'.format(vertex.x, vertex.y)
-                    for vertex in text.bounding_poly.vertices])
-            my = [(tup.split(","))[1][0:-1] for tup in maybe]
-            my = sorted(list(dict.fromkeys(my)))
-            mx = [int((tup.split(","))[0][1:]) for tup in maybe]
-            mx = sorted(list(dict.fromkeys(mx)))
-            if vy[0] == int(my[0]):
-                if vx[1] in range(mx[0], mx[1]):
-                    output = text.description
-                    print(output)
-                    return output
-
+            if text.description==word:
+                #count = count + 1
+                #if isTable(response, path, word)[count]:
+                print('\n"{}"'.format(text.description))
+                vertices1 = ({'({},{})'.format(vertex.x, vertex.y)
+                    for vertex in text.bounding_poly.vertices})
+                print('bounds: {}'.format(','.join(vertices1)))
+        vy = [int((tup.split(","))[1][0:-1]) for tup in vertices1]
+        vy = sorted(list(dict.fromkeys(vy)))
     except:
-        print("Couldn't find intersection")
+        print("Error extracting word \"" + word + "\"")
+
+    #Finds year on page and prints it as well as prints its y vertices
+    try:
+        for text in texts:
+            #this willl capture the most recent instance of the year
+            if text.description==year:
+                print('\n"{}"'.format(text.description))
+                vertices2 = (['({},{})'.format(vertex.x, vertex.y)
+                    for vertex in text.bounding_poly.vertices])
+                print('bounds: {}'.format(','.join(vertices2)))
+        vx = [int((tup.split(","))[0][1:]) for tup in vertices2]
+        vx = sorted(list(dict.fromkeys(vx)))
+    except:
+        print("Error extracting year \"" + year + "\"")
+
+    try:
+        output = ""
+        confidence = 0
+        print("VX" + str(vx))
+        for page in doc_texts.pages:
+            for block in page.blocks:
+                for paragraph in block.paragraphs:
+                    for word_obj in paragraph.words:
+                        #assemble word
+                        word_text = ''.join([
+                            symbol.text for symbol in word_obj.symbols
+                        ])
+                        mx = set()
+                        my = set()
+                        for vertex in word_obj.bounding_box.vertices:
+                            mx.add(vertex.x)
+                            my.add(vertex.y)
+                        my = min(my)
+                        mx = sorted(mx)
+                        if vy[0] == my:
+                            print(word_text)
+                            print(mx[0])
+                            print(mx[1])
+                            if mx[0] <= vx[1] and vx[1] <= mx[1]:
+                                output = word_text
+                                confidence = get_confidence(word_obj)
+    except:
+        print("Error extracting intersection of word \"" + word + "\" and year \"" + year + "\"")
+
+    #print(output)
+    #print(confidence)
+    #append_csv(word, year, output, confidence)
+    return (output, confidence)
+
+def detect_document(response, path):
+    """Detects document features in an image."""
+
+    for page in response.full_text_annotation.pages:
+        for block in page.blocks:
+            print('\nBlock confidence: {}\n'.format(block.confidence))
+
+            for paragraph in block.paragraphs:
+                print('Paragraph confidence: {}'.format(
+                    paragraph.confidence))
+
+                for word in paragraph.words:
+                    word_text = ''.join([
+                        symbol.text for symbol in word.symbols
+                    ])
+                    print('Word text: {} (confidence: {})'.format(
+                        word_text, word.confidence))
+
+                    for symbol in word.symbols:
+                        print('\tSymbol: {} (confidence: {})'.format(
+                            symbol.text, symbol.confidence))
+
+                    for symbol in word.symbols:
+                        print(symbol.text)
+
+def assemble_word(word):
+    assembled_word=""
+    for symbol in word.symbols:
+        assembled_word+=symbol.text
+    return assembled_word
+
+def find_word_location(document,word_to_find):
+    for page in document.pages:
+        for block in page.blocks:
+            for paragraph in block.paragraphs:
+                for word in paragraph.words:
+                    assembled_word=assemble_word(word_to_find)
+                    if(assembled_word==word_to_find):
+                        return word.bounding_box
 
 # Checks all instaces of 'word' on single page and returns and array of True/False based on if they are in a table or not
 def isTable(response, path, word):
@@ -137,9 +199,12 @@ def isTable(response, path, word):
 def get_confidence(word):
     confidenceLevel = 1
     confidenceCategory = 0
+    # TODO: fix the fact that all confidences are zero
     for symbol in word.symbols:
+        print("symconf: " + str(symbol.confidence))
         if symbol.confidence < confidenceLevel:
             confidenceLevel = symbol.confidence
+            print("conflevel: " + str(confidenceLevel))
     if confidenceLevel > .90:
         confidenceCategory = 10
     elif confidenceLevel > .80:
@@ -160,96 +225,75 @@ def get_confidence(word):
         confidenceCategory = 2
     else:
         confidenceCategory = 1
-    word.confidence = confidenceCategory
-    return word.confidence
+    #word.confidence = confidenceCategory
+    #return word.confidence
+    return confidenceCategory
 
-def append_csv(measure, year, value):
-        try:
-            with open("TestRun.csv", "a") as x:
-                x.write(measure + ",")
-                x.write(str(year) + ",")
-                if value:
-                    if "," in value:
-                        z=value.split(",")
-                        y= "".join(z)
-                        x.write(y + "\n")
-                else:
-                    x.write("\n")
-                    print("append_csv: None Type value passed in...")
-        except:
-            with open("TestRun.csv", "wt") as x:
-                print("dzkjbzknb")
-                x.write("Measure,Year,Value\n")
-                x.write(measure + ",")
-                x.write(year + ",")
-                if value:
-                    if "," in value:
-                        z=value.split(",")
-                        y= "".join(z)
-                        x.write(y + "\n")
-                else:
-                    x.write("\n")
-                    print("append_csv: None Type value passed in...")
+def pdfToPng(path, popplerPath):
+    pass
+    # TODO: implement pdfToPng
+    #pages = convert_from_path(path, 500, poppler_path = popplerPath)
+    #counter = 1
+    #for page in pages:
+    #    page.save(path[:-4] + str(counter) + '.png', 'PNG')
 
+    # with(Image(filename=path, resolution=120)) as source: 
+    #     images = source.sequence
+    #     pages = len(images)
+    #     for i in range(pages):
+    #         n = i + 1
+    #         newfilename = f[:-4] + str(n) + '.png'
+    #         Image(images[i]).save(filename=newfilename)
 
-def pdfToPng(path):
-    # pages = convert_from_path(path, 500)
-    # counter = 1
-    # for page in pages:
-    #     page.save(path[:-4] + str(counter) + '.png', 'PNG')
-
-    with(Image(filename=path, resolution=120)) as source:
-        images = source.sequence
-        pages = len(images)
-        for i in range(pages):
-            n = i + 1
-            newfilename = f[:-4] + str(n) + '.png'
-            Image(images[i]).save(filename=newfilename)
-
-def imgToCSV(client, path):
-    detect_text
-
-
+def append_csv(measure, year, value, confidence, company):
+    try:
+        with open(company + ".csv", "r") as x:
+            pass
+    except:
+        with open(company + ".csv", "wt") as x:
+            x.write("Measure,Year,Value,Confidence\n")
+    
+    with open(company + ".csv", "a") as x:
+        x.write(str(measure) + ",")
+        x.write(str(year) + ",")
+        if "," in value:
+            z=value.split(",")
+            y= "".join(z)
+            x.write(y + ",")
+        x.write(str(confidence) + "\n")
 
 if __name__=="__main__":
-
-
     # Instantiates a client
     client = vision.ImageAnnotatorClient()
 
-    theFile = 'Amazon_10-K_2018-18.png'
-    #theFile = pdfToPng("Alphabet_10K_2017.pdf")
-
-    current_year = theFile.split("-")[1][2:]
+    thePath = 'Amazon_10-K_2018'
+    word = "income"
+    
+    current_year = int(thePath.split("_")[2], 10)
+    final_year = current_year - 2
 
     # The name of the image file to annotate
-    file_name = os.path.join(
+    file_path = os.path.join(
         os.path.dirname(__file__),
-        theFile)
+        thePath)
 
-    with io.open(file_name, 'rb') as image_file:
-        content = image_file.read()
-    image = types.Image(content=content)
+    for file_name in os.listdir(file_path):
+        theCompany = file_name.split("_")[0]
+        with io.open(os.path.join(file_path,file_name), 'rb') as image_file:
+            content = image_file.read()
+        image = types.Image(content=content)
 
-    response_doc = client.document_text_detection(image=image)
-    response = client.text_detection(image=image)
+        response_doc = client.document_text_detection(image=image)
+        response = client.text_detection(image=image)
 
-    word = "income"
-    current_year = theFile.split("-")[1][2:]
-
+        cur_year = current_year
+        while cur_year >= final_year:
+            (output, confidence) = detect_text(response, file_name, word, str(cur_year))
+            append_csv(word, cur_year, output, confidence, theCompany)
+            cur_year = cur_year - 1
+    
     #detect_document(response_doc, file_name)
-
-    current_year = int(current_year,10)
-    final_year = current_year - 4
-    while current_year >= final_year:
-        output = detect_text(response, file_name, word, str(current_year))
-        append_csv(word, current_year, output)
-        current_year = current_year - 1
-
-    printAllText(response, file_name)
-
+    #detect_text(response, file_name, "sales", "2018")
+    #printAllText(response, file_name)
     #create_labels()
-
-
-
-    print(isTable(response, file_name, "earnings"))
+    #print(isTable(response, file_name, "earnings"))
