@@ -224,13 +224,12 @@ def get_confidence(word):
     elif confidenceLevel > .10:
         confidenceCategory = 2
     else:
-        confidenceCategory = 1
+        confidenceCategory = 10
     #word.confidence = confidenceCategory
     #return word.confidence
     return confidenceCategory
 
-def pdfToPng(path, popplerPath):
-    pass
+#def pdfToPng(path, popplerPath):
     # TODO: implement pdfToPng
     #pages = convert_from_path(path, 500, poppler_path = popplerPath)
     #counter = 1
@@ -266,11 +265,8 @@ if __name__=="__main__":
     # Instantiates a client
     client = vision.ImageAnnotatorClient()
 
-    thePath = 'Amazon_10-K_2018'
+    thePath = 'FilePaths'
     word = "income"
-    
-    current_year = int(thePath.split("_")[2], 10)
-    final_year = current_year - 2
 
     # The name of the image file to annotate
     file_path = os.path.join(
@@ -278,7 +274,9 @@ if __name__=="__main__":
         thePath)
 
     for file_name in os.listdir(file_path):
+        current_year = int(file_name.split("_")[2].split(".")[0], 10)
         theCompany = file_name.split("_")[0]
+        final_year = current_year - 2
         with io.open(os.path.join(file_path,file_name), 'rb') as image_file:
             content = image_file.read()
         image = types.Image(content=content)
