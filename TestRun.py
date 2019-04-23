@@ -40,13 +40,15 @@ def printAllText(response, path):
 
 
 # Finds input word and input year on page, finds each x and y-values for inputs, and extracts number at the intersection of x y values
-def detect_text(response, path, word, year):
+def detect_text(response, path, word, year, recursive):
     """Detects text in the file."""
 
     texts = response.text_annotations
     doc_texts = response.full_text_annotation
     #count = -1
-    print('Texts:')
+    print('\n\n\nFor Path ' + path + ':')
+    #for first iteration, check only under the x value of the year
+    print("RECURSIVE: " + str(recursive))
 
     #Finds word on page and its y vertices and  prints it as well as its y vertices
     try:
@@ -60,11 +62,13 @@ def detect_text(response, path, word, year):
                 print('bounds: {}'.format(','.join(vertices1)))
         vy = [int((tup.split(","))[1][0:-1]) for tup in vertices1]
         vy = sorted(list(dict.fromkeys(vy)))
+        vy = (vy[0], vy[-1])
     except:
         print("Error extracting word \"" + word + "\"")
 
     #Finds year on page and prints it as well as prints its y vertices
     try:
+        #as recursive increases, the pixel increase increases
         for text in texts:
             #this willl capture the most recent instance of the year
             if text.description==year:
@@ -74,13 +78,18 @@ def detect_text(response, path, word, year):
                 print('bounds: {}'.format(','.join(vertices2)))
         vx = [int((tup.split(","))[0][1:]) for tup in vertices2]
         vx = sorted(list(dict.fromkeys(vx)))
+        vx = (vx[0], vx[-1])
+        vx[0] -= recursive * 2
+        vx[1] += recursive * 2
     except:
         print("Error extracting year \"" + year + "\"")
+
+    #for next iteration, keep expanding box until the size of a column
+
 
     try:
         output = ""
         confidence = 0
-        print("VX" + str(vx))
         for page in doc_texts.pages:
             for block in page.blocks:
                 for paragraph in block.paragraphs:
@@ -91,24 +100,41 @@ def detect_text(response, path, word, year):
                         ])
                         mx = set()
                         my = set()
+                        tempx = set()
+                        tempy = set()
                         for vertex in word_obj.bounding_box.vertices:
-                            mx.add(vertex.x)
-                            my.add(vertex.y)
-                        my = min(my)
+                            tempx.add(vertex.x)
+                            tempy.add(vertex.y)
+                        tempx = sorted(tempx)
+                        tempy = sorted(tempy)
+                        mx.add(tempx[0])
+                        mx.add(tempx[-1])
+                        my.add(tempy[0])
+                        my.add(tempy[-1])
                         mx = sorted(mx)
-                        if vy[0] == my:
-                            print(word_text)
-                            print(mx[0])
-                            print(mx[1])
-                            if mx[0] <= vx[1] and vx[1] <= mx[1]:
+                        my = sorted(my)
+                        if (my[0] <= vy[1] and vy[1] <= my[1]) or (my[0] <= vy[0] and vy[0] <= my[1]) or (my[0] >= vy[0] and vy[1] >= my[1]):
+                            print("word: " + word_text)
+                            print("vx: " + str(vx))
+                            print("vy: " + str(vy))
+                            print("mx: " + str(mx))
+                            print("my: " + str(my))
+                            if (mx[0] <= vx[1] and vx[1] <= mx[1]) or (mx[0] <= vx[0] and vx[0] <= mx[1]) or (mx[0] >= vx[0] and vx[1] >= mx[1]):
                                 output = word_text
                                 confidence = get_confidence(word_obj)
+
+        if output == "":
+            print(" NO OUTPUT!!!!")
+            recursive = recursive + 1;
+            detect_text(response, path, word, year, recursive)
+
     except:
         print("Error extracting intersection of word \"" + word + "\" and year \"" + year + "\"")
 
     #print(output)
     #print(confidence)
     #append_csv(word, year, output, confidence)
+
     return (output, confidence)
 
 def detect_document(response, path):
@@ -181,7 +207,9 @@ def isTable(response, path, word):
                 right2Vertex = max(x2VertexSet)
                 top2Vertex = min(y2VertexSet)
                 bottom2Vertex = max(y2VertexSet)
-                if right2Vertex > rightVertex and ((topVertex <= top2Vertex and top2Vertex < bottomVertex) or (bottomVertex >= bottom2Vertex and bottom2Vertex >= topVertex)  or ((topVertex >= top2Vertex) and (bottomVertex <= bottom2Vertex))): #checks to see if any vertex of the examined word is in line with the original word, as well as being to the right of the original word
+                if right2Vertex > rightVertex and ((topVertex <= top2Vertex and top2Vertex < bottomVertex)
+                or (bottomVertex >= bottom2Vertex and bottom2Vertex >= topVertex)  or ((topVertex >= top2Vertex)
+                 and (bottomVertex <= bottom2Vertex))): #checks to see if any vertex of the examined word is in line with the original word, as well as being to the right of the original word
                     mightBeTable.append(word1)
 
             #this next part is going to check to see if the words that were in the right place are numbers, thus qualifiying if the word is a row in a table
@@ -236,7 +264,7 @@ def get_confidence(word):
     #for page in pages:
     #    page.save(path[:-4] + str(counter) + '.png', 'PNG')
 
-    # with(Image(filename=path, resolution=120)) as source: 
+    # with(Image(filename=path, resolution=120)) as source:
     #     images = source.sequence
     #     pages = len(images)
     #     for i in range(pages):
@@ -251,7 +279,7 @@ def append_csv(measure, year, value, confidence, company):
     except:
         with open(company + ".csv", "wt") as x:
             x.write("Measure,Year,Value,Confidence\n")
-    
+
     with open(company + ".csv", "a") as x:
         x.write(str(measure) + ",")
         x.write(str(year) + ",")
@@ -266,30 +294,31 @@ if __name__=="__main__":
     client = vision.ImageAnnotatorClient()
 
     thePath = 'FilePaths'
-    word = "income"
+    words = ["income", "sales", "Revenue"]
 
     # The name of the image file to annotate
     file_path = os.path.join(
         os.path.dirname(__file__),
         thePath)
 
-    for file_name in os.listdir(file_path):
-        current_year = int(file_name.split("_")[2].split(".")[0], 10)
-        theCompany = file_name.split("_")[0]
-        final_year = current_year - 2
-        with io.open(os.path.join(file_path,file_name), 'rb') as image_file:
-            content = image_file.read()
-        image = types.Image(content=content)
+    for word in words:
+        for file_name in os.listdir(file_path):
+            current_year = int(file_name.split("_")[2].split(".")[0], 10)
+            theCompany = file_name.split("_")[0]
+            final_year = current_year - 2
+            with io.open(os.path.join(file_path,file_name), 'rb') as image_file:
+                content = image_file.read()
+            image = types.Image(content=content)
 
-        response_doc = client.document_text_detection(image=image)
-        response = client.text_detection(image=image)
+            response_doc = client.document_text_detection(image=image)
+            response = client.text_detection(image=image)
 
-        cur_year = current_year
-        while cur_year >= final_year:
-            (output, confidence) = detect_text(response, file_name, word, str(cur_year))
-            append_csv(word, cur_year, output, confidence, theCompany)
-            cur_year = cur_year - 1
-    
+            cur_year = current_year
+            while cur_year >= final_year:
+                (output, confidence) = detect_text(response, file_name, word, str(cur_year), 0)
+                append_csv(word, cur_year, output, confidence, theCompany)
+                cur_year = cur_year - 1
+
     #detect_document(response_doc, file_name)
     #detect_text(response, file_name, "sales", "2018")
     #printAllText(response, file_name)
