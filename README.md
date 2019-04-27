@@ -5,7 +5,7 @@ This tool takes inputs of financial statements in a png format and extracts out 
 When tracking the financial data of a large amount of companies, there are certain sets of data that appear in the same format on a yearly schedule. When processing this data into excel, it is important to have updated and accurate information. Previously, companies have relied on financial analysts to extract and process data. This tool specifies certain metrics, and automatically extracts any inputted information, updating a company’s CSV file as new metrics and financial documents are released. 
 
 # Code Example
-<img src="/Users/mg/repos/IBM_Financial_Statements/Screen Shot 2019-04-27 at 1.33.17 PM.png" />
+![alt text](https://github.com/margro2000/IBM_Financial_Statements/blob/master/Screen%20Shot%202019-04-27%20at%201.33.17%20PM.png)
 
 # Installation
 Links:
