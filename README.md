@@ -12,6 +12,7 @@ Links:
 1) To see the documentation and setup Google Cloud Vision account, go to: https://cloud.google.com/vision/docs/libraries
 2) Link on how to use client libraries: https://cloud.google.com/vision/docs/quickstart-client-libraries
 3) Installing pip: https://pip.readthedocs.io/en/stable/installing/
+4) Setting up authentication: https://cloud.google.com/docs/authentication/production#auth-cloud-implicit-python
 
 Steps for getting ready to work with Google OCR Vision API:
 
@@ -19,6 +20,6 @@ Steps for getting ready to work with Google OCR Vision API:
 2) Set up your first project and google cloud vision.
 3) At the bottom of the tutorial, you will see an example of how to use the client library. This shows one execution of the google cloud library. Our goal for this project is to run and execute the code already given locally. However, before we can do this you need to go through the Python setup tutorial called Vision API Quickstart Using Client Libraries. Here is the link: https://cloud.google.com/vision/docs/quickstart-client-libraries
 4) Run the pip install command given in your local terminal. If it doesn’t work, the you probably do not have pip installed. Go to Link 3 to install it. 
-5) Now you should be able to copy and paste the Label Detection code into your favorite editor and run it locally. 
-Let us know if you encounter any issues.
+5) To set up your authentication key, go to link number four and scroll down to the "Creating a service account" section. Follow the instructions from the GCP Console option. After creating a json file with your credentials, store it securely and save its path. 
+6) Before running the code, run the command: export GOOGLE_APPLICATION_CREDENTIALS="[PATH]" with tha path to your json file. This will allow you to run the code.
 
