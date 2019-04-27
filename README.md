@@ -1,4 +1,4 @@
-# Financial_Statements_Automated_Information_Extraction
+# Financial Statements Automated Extraction
 This tool takes inputs of financial statements in a png format and extracts out specified information. This would prevent financial analysts from having to spend time transferring data from financial statements into excel documents. The program was designed in python and used google vision and cloud systems for data processing. 
 
 # Motivation
