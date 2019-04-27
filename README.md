@@ -9,15 +9,16 @@ When tracking the financial data of a large amount of companies, there are certa
 
 # Installation
 Links:
-To see the documentation and setup Google Cloud Vision account, go to: https://cloud.google.com/vision/docs/libraries
-Link on how to use client libraries: https://cloud.google.com/vision/docs/quickstart-client-libraries
-Installing pip: https://pip.readthedocs.io/en/stable/installing/
+1) To see the documentation and setup Google Cloud Vision account, go to: https://cloud.google.com/vision/docs/libraries
+2) Link on how to use client libraries: https://cloud.google.com/vision/docs/quickstart-client-libraries
+3) Installing pip: https://pip.readthedocs.io/en/stable/installing/
 
 Steps for getting ready to work with Google OCR Vision API:
 
-Go to the link listed above to setup your free account with Google Cloud Vision by clicking “Try Free” and completing the steps listed.
-Set up your first project and google cloud vision.
-At the bottom of the tutorial, you will see an example of how to use the client library. This shows one execution of the google cloud library. Our goal for this project is to run and execute the code already given locally. However, before we can do this you need to go through the Python setup tutorial called Vision API Quickstart Using Client Libraries. Here is the link: https://cloud.google.com/vision/docs/quickstart-client-libraries
-Run the pip install command given in your local terminal. If it doesn’t work, the you probably do not have pip installed. Go to Link 4 to install it. 
-Now you should be able to copy and paste the Label Detection code into your favorite editor and run it locally. Let us know if you encounter any issues.
+1) Go to the link listed above to setup your free account with Google Cloud Vision by clicking “Try Free” and completing the steps listed. 
+2) Set up your first project and google cloud vision.
+3) At the bottom of the tutorial, you will see an example of how to use the client library. This shows one execution of the google cloud library. Our goal for this project is to run and execute the code already given locally. However, before we can do this you need to go through the Python setup tutorial called Vision API Quickstart Using Client Libraries. Here is the link: https://cloud.google.com/vision/docs/quickstart-client-libraries
+4) Run the pip install command given in your local terminal. If it doesn’t work, the you probably do not have pip installed. Go to Link 3 to install it. 
+5) Now you should be able to copy and paste the Label Detection code into your favorite editor and run it locally. 
+Let us know if you encounter any issues.
 
